@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
+import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
-import PillBadge from "../common/PillBadge";
+import PromptPanel from "./PromptPanel";
+import OutputSummaryCard from "./OutputSummaryCard";
 import {
   buildPlanSectionPrompt,
   getPlanStudioProgress,
@@ -23,24 +25,12 @@ function TextArea({ value, onChange, placeholder, rows = 4 }) {
 function FieldLabel({ label, helper }) {
   return (
     <div className="mb-2">
-      <label className="block text-sm font-semibold text-slate-900">{label}</label>
-      {helper && <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>}
-    </div>
-  );
-}
-
-function OutputBlock({ title, value, accent = "sky" }) {
-  const classes =
-    accent === "orange"
-      ? "border-orange-200 bg-orange-50"
-      : "border-sky-100 bg-sky-50/60";
-
-  return (
-    <div className={`rounded-2xl border p-4 ${classes}`}>
-      <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-        {value && value.trim() ? value : "No content yet."}
-      </p>
+      <label className="block text-sm font-semibold text-slate-900">
+        {label}
+      </label>
+      {helper ? (
+        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
+      ) : null}
     </div>
   );
 }
@@ -89,11 +79,14 @@ export default function PlanStudioWorkspace({
   onContinueToValue,
 }) {
   const [copyStatus, setCopyStatus] = useState("idle");
+
   const planStudio = projectData.planStudio;
   const activeSectionId = planStudio.activeSection || "scope";
+
   const activeSectionConfig =
     planSectionConfigs.find((item) => item.id === activeSectionId) ||
     planSectionConfigs[0];
+
   const activeSectionState = planStudio.sections[activeSectionId];
 
   const progress = useMemo(
@@ -193,7 +186,8 @@ export default function PlanStudioWorkspace({
             ...prev.planStudio.sections[activeSectionId],
             ...parsed,
             draftContent:
-              parsed.draftContent || prev.planStudio.sections[activeSectionId].draftContent,
+              parsed.draftContent ||
+              prev.planStudio.sections[activeSectionId].draftContent,
           },
         },
       },
@@ -201,57 +195,52 @@ export default function PlanStudioWorkspace({
   };
 
   return (
-    <div className="space-y-6">
-      <SectionCard className="border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-50">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="mb-3 flex flex-wrap gap-2">
-              <PillBadge tone="blue">Plan Studio V1</PillBadge>
-              <PillBadge tone="softBlue">PMBOK-Aligned</PillBadge>
-              <PillBadge tone="orange">AI Section Builder</PillBadge>
-            </div>
+    <BuilderLayout
+      badges={[
+        { label: "Plan Studio V1", tone: "blue" },
+        { label: "PMBOK-Aligned", tone: "softBlue" },
+        { label: "AI Section Builder", tone: "orange" },
+      ]}
+      title="Plan Studio Workspace"
+      description="Build the project plan section by section using Project Basics and the Charter as source context. This V1 includes Scope, Schedule, Risk, and Communications."
+      actions={
+        <>
+          <button
+            type="button"
+            onClick={onGoHome}
+            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
+          >
+            Back to Home
+          </button>
 
-            <h2 className="text-3xl font-semibold text-slate-900">
-              Plan Studio Workspace
-            </h2>
+          <button
+            type="button"
+            onClick={onBackToCharter}
+            className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
+          >
+            Back to Charter
+          </button>
 
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-700">
-              Build the project plan section by section using the current
-              Project Basics and Charter as source context. This V1 includes
-              Scope, Schedule, Risk, and Communications.
-            </p>
-          </div>
-
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <button
-              type="button"
-              onClick={onGoHome}
-              className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
-            >
-              Back to Home
-            </button>
-
-            <button
-              type="button"
-              onClick={onBackToCharter}
-              className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
-            >
-              Back to Charter
-            </button>
-
-            <button
-              type="button"
-              onClick={onContinueToValue}
-              className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
-            >
-              Go to Value Estimate
-            </button>
-          </div>
-        </div>
-      </SectionCard>
-
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-6">
+          <button
+            type="button"
+            onClick={onContinueToValue}
+            className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
+          >
+            Go to Value Estimate
+          </button>
+        </>
+      }
+      progress={{
+        percent: progress.percent,
+        completed: progress.completed,
+        total: progress.total,
+        metricLabel: "Plan Studio completeness",
+        detail: `${progress.completed} of ${progress.total} sections drafted`,
+        secondaryLabel: "Current focus",
+        secondaryText: `${activeSectionConfig.title}: ${activeSectionConfig.outputHint}`,
+      }}
+      left={
+        <>
           <SectionCard
             title="Planning section navigator"
             subtitle="Choose a section to build and iterate with your AI partner."
@@ -259,7 +248,8 @@ export default function PlanStudioWorkspace({
             <div className="space-y-3">
               {planSectionConfigs.map((config) => {
                 const state = planStudio.sections[config.id];
-                const complete = state?.draftContent && String(state.draftContent).trim();
+                const complete =
+                  state?.draftContent && String(state.draftContent).trim();
 
                 return (
                   <SectionStatusCard
@@ -275,47 +265,20 @@ export default function PlanStudioWorkspace({
           </SectionCard>
 
           <SectionCard
-            title="Plan progress"
-            subtitle="A quick view of how much of Plan Studio V1 has draft content."
-          >
-            <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-              <p className="text-sm font-semibold text-orange-700">
-                Plan Studio completeness
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
-                {progress.percent}%
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                {progress.completed} of {progress.total} sections drafted
-              </p>
-            </div>
-
-            <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-              <p className="text-sm font-semibold text-sky-700">
-                Current section
-              </p>
-              <p className="mt-2 text-lg font-semibold text-slate-900">
-                {activeSectionConfig.title}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-slate-700">
-                {activeSectionConfig.outputHint}
-              </p>
-            </div>
-          </SectionCard>
-
-          <SectionCard
             title="Editable section draft"
-            subtitle="This is the reusable plan content for the selected section."
+            subtitle="This becomes the reusable project plan content for the selected section."
           >
             <div>
               <FieldLabel
                 label={`${activeSectionConfig.title} Draft`}
-                helper="You can edit this manually or apply parsed AI output into it."
+                helper="You can write directly here or apply parsed AI output into this section."
               />
               <TextArea
                 value={activeSectionState.draftContent}
-                onChange={(e) => updateActiveSection("draftContent", e.target.value)}
-                placeholder={`Draft ${activeSectionConfig.title} section content here...`}
+                onChange={(e) =>
+                  updateActiveSection("draftContent", e.target.value)
+                }
+                placeholder={`Draft the ${activeSectionConfig.title} section here...`}
                 rows={14}
               />
             </div>
@@ -326,73 +289,60 @@ export default function PlanStudioWorkspace({
             subtitle="Once the AI response is parsed, these supporting blocks become reusable planning inputs."
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              <OutputBlock
+              <OutputSummaryCard
                 title="Missing Information"
                 value={activeSectionState.missingInformation}
               />
-              <OutputBlock
+              <OutputSummaryCard
                 title="Questions for the User"
                 value={activeSectionState.questionsForUser}
                 accent="orange"
               />
-              <OutputBlock
+              <OutputSummaryCard
                 title="Suggested Next Steps"
                 value={activeSectionState.suggestedNextSteps}
               />
-              <OutputBlock
+              <OutputSummaryCard
                 title="Key Assumptions"
                 value={activeSectionState.keyAssumptions}
                 accent="orange"
               />
             </div>
           </SectionCard>
-        </div>
 
-        <div className="space-y-6">
           <SectionCard
-            title="AI prompt preview"
-            subtitle="Generate the section prompt, then copy it into your AI tool."
+            title="Current section summary"
+            subtitle="A quick explanation of what this selected planning section is meant to produce."
           >
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
-                <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
-                  {livePrompt}
-                </pre>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <button
-                  type="button"
-                  onClick={handleGeneratePrompt}
-                  className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-                >
-                  Refresh Prompt
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleCopyPrompt}
-                  className="rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
-                >
-                  {copyStatus === "copied"
-                    ? "Prompt Copied"
-                    : copyStatus === "failed"
-                    ? "Copy Failed"
-                    : "Copy Prompt"}
-                </button>
-              </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OutputSummaryCard
+                title="Section Goal"
+                value={activeSectionConfig.purpose}
+              />
+              <OutputSummaryCard
+                title="Expected Output"
+                value={activeSectionConfig.outputHint}
+                accent="orange"
+              />
             </div>
           </SectionCard>
-
-          <SectionCard
-            title="Paste AI response"
-            subtitle="Paste the AI output here using the exact headings from the prompt."
-          >
-            <div className="space-y-4">
-              <TextArea
-                value={activeSectionState.aiResponse}
-                onChange={(e) => updateActiveSection("aiResponse", e.target.value)}
-                placeholder={`Paste the AI response here.
+        </>
+      }
+      right={
+        <PromptPanel
+          promptTitle="AI prompt preview"
+          promptSubtitle="Generate the section prompt, then copy it into your AI tool."
+          promptText={livePrompt}
+          onRefreshPrompt={handleGeneratePrompt}
+          onCopyPrompt={handleCopyPrompt}
+          copyStatus={copyStatus}
+          responseTitle="Paste AI response"
+          responseSubtitle="Paste the AI output here using the exact headings from the prompt."
+          responseValue={activeSectionState.aiResponse}
+          onResponseChange={(e) =>
+            updateActiveSection("aiResponse", e.target.value)
+          }
+          responsePlaceholder={`Paste the AI response here.
 
 Required structure:
 A. Draft Section Content
@@ -400,69 +350,32 @@ B. Missing Information
 C. Questions for the User
 D. Suggested Next Steps
 E. Key Assumptions`}
-                rows={16}
-              />
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <button
-                  type="button"
-                  onClick={handleParseResponse}
-                  className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
-                >
-                  Parse AI Response
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleApplyDraftToSection}
-                  className="rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
-                >
-                  Apply to Section
-                </button>
-              </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard
-            title="How to use Plan Studio V1"
-            subtitle="Recommended section-by-section workflow"
-          >
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-                <p className="text-sm font-semibold text-sky-700">Step 1</p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Select a planning section and refresh the prompt so it uses the
-                  latest Project Basics and Charter content.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-                <p className="text-sm font-semibold text-sky-700">Step 2</p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Copy the prompt into your AI tool and ask it to return the
-                  output using the exact required headings.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-                <p className="text-sm font-semibold text-sky-700">Step 3</p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Paste the response back here and parse it into structured plan
-                  components.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-                <p className="text-sm font-semibold text-orange-700">Step 4</p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Apply the parsed result to the section draft, then refine it as
-                  needed before moving on to the next section.
-                </p>
-              </div>
-            </div>
-          </SectionCard>
-        </div>
-      </div>
-    </div>
+          responseRows={16}
+          onParseResponse={handleParseResponse}
+          onApplyResponse={handleApplyDraftToSection}
+          parseLabel="Parse AI Response"
+          applyLabel="Apply to Section"
+          helperTitle="How to use Plan Studio"
+          helperSteps={[
+            {
+              title: "Step 1",
+              body: "Select a planning section and refresh the prompt so it uses the latest Project Basics and Charter content.",
+            },
+            {
+              title: "Step 2",
+              body: "Copy the prompt into your AI tool and ask it to return the output using the exact required headings.",
+            },
+            {
+              title: "Step 3",
+              body: "Paste the response back here and parse it into structured project plan components.",
+            },
+            {
+              title: "Step 4",
+              body: "Apply the parsed result to the section draft, then refine it before moving on to the next section.",
+            },
+          ]}
+        />
+      }
+    />
   );
 }
