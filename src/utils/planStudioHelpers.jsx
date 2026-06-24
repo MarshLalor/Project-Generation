@@ -135,3 +135,140 @@ function formatProjectContext(projectData) {
 
   return [
     `Project Title: ${safeText(basics.title)}`,
+    `Business Problem / Opportunity: ${safeText(basics.businessProblem)}`,
+    `Project Objective: ${safeText(basics.projectObjective)}`,
+    `Expected Business Outcome: ${safeText(basics.expectedBusinessOutcome)}`,
+    `Delivery Approach: ${safeText(basics.deliveryApproach, "hybrid")}`,
+    `Project Sponsor: ${safeText(basics.sponsor)}`,
+    `Business Owner: ${safeText(basics.businessOwner)}`,
+    `Project Manager: ${safeText(basics.projectManager)}`,
+    `Department / Business Unit: ${safeText(basics.department)}`,
+    `Target Timeline: ${safeText(basics.targetTimeline)}`,
+    `Estimated Budget Range: ${safeText(basics.estimatedBudgetRange)}`,
+    `In Scope: ${safeText(basics.scopeIn)}`,
+    `Out of Scope: ${safeText(basics.scopeOut)}`,
+    `Key Stakeholders: ${safeText(basics.keyStakeholders)}`,
+    `Success Criteria: ${safeText(basics.successCriteria)}`,
+    `Key Assumptions: ${safeText(basics.keyAssumptions)}`,
+    `Key Constraints: ${safeText(basics.keyConstraints)}`,
+    `Risks / Dependencies: ${safeText(basics.risksDependencies)}`,
+    `Initial Value Hypothesis: ${safeText(basics.initialValueHypothesis)}`,
+    "",
+    "Current Charter Context:",
+    safeText(charter.charterText),
+  ].join("\n");
+}
+
+function formatExistingSectionContext(sectionState) {
+  return [
+    `Current Draft Section Content: ${safeText(sectionState?.draftContent)}`,
+    `Current Missing Information: ${safeText(sectionState?.missingInformation)}`,
+    `Current Questions for the User: ${safeText(sectionState?.questionsForUser)}`,
+    `Current Suggested Next Steps: ${safeText(sectionState?.suggestedNextSteps)}`,
+    `Current Key Assumptions: ${safeText(sectionState?.keyAssumptions)}`,
+  ].join("\n");
+}
+
+export function buildPlanSectionPrompt(projectData, sectionId) {
+  const config =
+    planSectionConfigs.find((item) => item.id === sectionId) ||
+    planSectionConfigs[0];
+
+  const sectionState = projectData?.planStudio?.sections?.[sectionId] || {};
+
+  return `You are an expert project planning assistant with strong knowledge of PMBOK-aligned planning, practical delivery planning, and business-friendly project documentation.
+
+Your task is to help build the ${config.title} section of a project plan.
+
+Guiding principles:
+1. Use the project charter and project basics as the minimum source of truth.
+2. Align the plan content to the selected delivery approach.
+3. Keep outputs practical, structured, and usable by project managers, sponsors, and business leads.
+4. Clearly distinguish between draft content, missing information, assumptions, and recommended next steps.
+5. If information is missing, ask focused follow-up questions instead of inventing precise detail.
+
+Project context:
+${formatProjectContext(projectData)}
+
+Existing section context:
+${formatExistingSectionContext(sectionState)}
+
+Planning section to build:
+${config.title}
+
+Section goal:
+${config.purpose}
+
+Tasks:
+${config.tasks.map((task, index) => `${index + 1}. ${task}`).join("\n")}
+
+Please return the response in the exact structure below:
+
+A. Draft Section Content
+B. Missing Information
+C. Questions for the User
+D. Suggested Next Steps
+E. Key Assumptions
+
+Additional instructions:
+- For Waterfall, lean toward structured phases, detailed planning, and defined controls.
+- For Agile, lean toward iterative planning, backlog thinking, sprint/release thinking, and continuous refinement.
+- For Hybrid, combine structured governance with iterative delivery where appropriate.
+- Make the section concise enough to be reusable in a project plan, but detailed enough to be useful.
+- Use bullets where helpful.`;
+}
+
+export function parsePlanStudioResponse(responseText) {
+  const empty = {
+    draftContent: "",
+    missingInformation: "",
+    questionsForUser: "",
+    suggestedNextSteps: "",
+    keyAssumptions: "",
+  };
+
+  if (!responseText || !responseText.trim()) {
+    return empty;
+  }
+
+  const lines = responseText.split("\n");
+  const buffers = {};
+  let currentKey = null;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const matchedKey = findParsedBlockKey(line);
+
+    if (matchedKey) {
+      currentKey = matchedKey;
+      if (!buffers[currentKey]) buffers[currentKey] = [];
+      continue;
+    }
+
+    if (currentKey) {
+      buffers[currentKey].push(rawLine);
+    }
+  }
+
+  return {
+    draftContent: (buffers.draftContent || []).join("\n").trim(),
+    missingInformation: (buffers.missingInformation || []).join("\n").trim(),
+    questionsForUser: (buffers.questionsForUser || []).join("\n").trim(),
+    suggestedNextSteps: (buffers.suggestedNextSteps || []).join("\n").trim(),
+    keyAssumptions: (buffers.keyAssumptions || []).join("\n").trim(),
+  };
+}
+
+export function getPlanStudioProgress(planStudio) {
+  const sections = planStudio?.sections || {};
+  const entries = Object.entries(sections);
+
+  const total = entries.length;
+  const completed = entries.filter(([, value]) => {
+    return value?.draftContent && String(value.draftContent).trim();
+  }).length;
+
+  const percent = total ? Math.round((completed / total) * 100) : 0;
+
+  return { total, completed, percent };
+}
