@@ -1,13 +1,23 @@
 import React, { useMemo, useState } from "react";
+import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
-import PillBadge from "../common/PillBadge";
-import { generateCharterPayload } from "../../utils/charterHelpers";
+import PromptPanel from "./PromptPanel";
+import OutputSummaryCard from "./OutputSummaryCard";
+import {
+  charterSectionsToText,
+  generateCharterPayload,
+} from "../../utils/charterHelpers";
+import { getCharterCompletion } from "../../utils/workspaceHelpers";
 
 function FieldLabel({ label, helper }) {
   return (
     <div className="mb-2">
-      <label className="block text-sm font-semibold text-slate-900">{label}</label>
-      {helper && <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>}
+      <label className="block text-sm font-semibold text-slate-900">
+        {label}
+      </label>
+      {helper ? (
+        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
+      ) : null}
     </div>
   );
 }
@@ -24,10 +34,10 @@ function TextArea({ value, onChange, placeholder, rows = 4 }) {
   );
 }
 
-function CharterSectionEditor({ label, value, onChange, rows = 5 }) {
+function CharterSectionEditor({ label, value, onChange, rows = 5, helper }) {
   return (
     <div>
-      <FieldLabel label={label} />
+      <FieldLabel label={label} helper={helper} />
       <TextArea value={value} onChange={onChange} rows={rows} />
     </div>
   );
@@ -45,14 +55,49 @@ export default function CharterWorkspace({
   const basics = projectData.projectBasics;
   const charter = projectData.charter;
 
+  const completion = useMemo(
+    () => getCharterCompletion(projectData),
+    [projectData]
+  );
+
   const previewPayload = useMemo(() => {
     return generateCharterPayload(projectData);
   }, [projectData]);
 
-  const effectiveCharterText =
-    charter.charterText && charter.charterText.trim()
-      ? charter.charterText
-      : previewPayload.charterText;
+  const mergedSections = useMemo(() => {
+    return {
+      backgroundBusinessNeed:
+        charter.backgroundBusinessNeed || previewPayload.backgroundBusinessNeed,
+      problemStatement:
+        charter.problemStatement || previewPayload.problemStatement,
+      projectObjectives:
+        charter.projectObjectives || previewPayload.projectObjectives,
+      scopeSummary: charter.scopeSummary || previewPayload.scopeSummary,
+      keyStakeholders:
+        charter.keyStakeholders || previewPayload.keyStakeholders,
+      timelineMilestones:
+        charter.timelineMilestones || previewPayload.timelineMilestones,
+      assumptions: charter.assumptions || previewPayload.assumptions,
+      constraints: charter.constraints || previewPayload.constraints,
+      risksDependencies:
+        charter.risksDependencies || previewPayload.risksDependencies,
+      successCriteria:
+        charter.successCriteria || previewPayload.successCriteria,
+      initialValueHypothesis:
+        charter.initialValueHypothesis ||
+        previewPayload.initialValueHypothesis,
+      recommendedNextSteps:
+        charter.recommendedNextSteps || previewPayload.recommendedNextSteps,
+    };
+  }, [charter, previewPayload]);
+
+  const effectiveCharterText = useMemo(() => {
+    if (charter.charterText && charter.charterText.trim()) {
+      return charter.charterText;
+    }
+
+    return charterSectionsToText(mergedSections, basics.title || "");
+  }, [charter.charterText, mergedSections, basics.title]);
 
   const effectiveAiPrompt =
     charter.aiPrompt && charter.aiPrompt.trim()
@@ -82,16 +127,41 @@ export default function CharterWorkspace({
   };
 
   const handleRefreshTextFromSections = () => {
-    const liveData = {
-      ...charter,
-      charterText: previewPayload.charterText,
-    };
+    const refreshedText = charterSectionsToText(
+      {
+        backgroundBusinessNeed:
+          charter.backgroundBusinessNeed ||
+          previewPayload.backgroundBusinessNeed,
+        problemStatement:
+          charter.problemStatement || previewPayload.problemStatement,
+        projectObjectives:
+          charter.projectObjectives || previewPayload.projectObjectives,
+        scopeSummary: charter.scopeSummary || previewPayload.scopeSummary,
+        keyStakeholders:
+          charter.keyStakeholders || previewPayload.keyStakeholders,
+        timelineMilestones:
+          charter.timelineMilestones || previewPayload.timelineMilestones,
+        assumptions: charter.assumptions || previewPayload.assumptions,
+        constraints: charter.constraints || previewPayload.constraints,
+        risksDependencies:
+          charter.risksDependencies || previewPayload.risksDependencies,
+        successCriteria:
+          charter.successCriteria || previewPayload.successCriteria,
+        initialValueHypothesis:
+          charter.initialValueHypothesis ||
+          previewPayload.initialValueHypothesis,
+        recommendedNextSteps:
+          charter.recommendedNextSteps ||
+          previewPayload.recommendedNextSteps,
+      },
+      basics.title || ""
+    );
 
     setProjectData((prev) => ({
       ...prev,
       charter: {
         ...prev.charter,
-        ...liveData,
+        charterText: refreshedText,
       },
     }));
   };
@@ -108,60 +178,56 @@ export default function CharterWorkspace({
   };
 
   return (
-    <div className="space-y-6">
-      <SectionCard className="border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-50">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="mb-3 flex flex-wrap gap-2">
-              <PillBadge tone="blue">Charter Workspace</PillBadge>
-              <PillBadge tone="softBlue">Editable Draft</PillBadge>
-              <PillBadge tone="orange">AI Refinement Ready</PillBadge>
-            </div>
+    <BuilderLayout
+      badges={[
+        { label: "Charter Workspace", tone: "blue" },
+        { label: "Editable Draft", tone: "softBlue" },
+        { label: "AI Refinement Ready", tone: "orange" },
+      ]}
+      title="Project Charter Workspace"
+      description="Generate a structured charter from Project Basics and Ideation content, refine the sections, and prepare a copy-ready charter that can later be exported."
+      actions={
+        <>
+          <button
+            type="button"
+            onClick={onGoHome}
+            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
+          >
+            Back to Home
+          </button>
 
-            <h2 className="text-3xl font-semibold text-slate-900">
-              Project Charter Workspace
-            </h2>
+          <button
+            type="button"
+            onClick={onBackToBasics}
+            className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
+          >
+            Back to Project Basics
+          </button>
 
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-700">
-              Generate a structured charter from the Project Basics and Ideation
-              content, refine the sections, and prepare a copy-ready charter that
-              can later be exported.
-            </p>
-          </div>
-
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <button
-              type="button"
-              onClick={onGoHome}
-              className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
-            >
-              Back to Home
-            </button>
-
-            <button
-              type="button"
-              onClick={onBackToBasics}
-              className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
-            >
-              Back to Project Basics
-            </button>
-
-            <button
-              type="button"
-              onClick={onContinueToPlan}
-              className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
-            >
-              Go to Plan Studio
-            </button>
-          </div>
-        </div>
-      </SectionCard>
-
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <div className="space-y-6">
+          <button
+            type="button"
+            onClick={onContinueToPlan}
+            className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
+          >
+            Go to Plan Studio
+          </button>
+        </>
+      }
+      progress={{
+        percent: completion.percent,
+        completed: completion.completed,
+        total: completion.total,
+        metricLabel: "Charter completeness",
+        detail: `${completion.completed} of ${completion.total} tracked charter fields completed`,
+        secondaryLabel: "Why this matters",
+        secondaryText:
+          "The project charter becomes the source-of-truth document for your planning prompts, value story, cost story, and final outputs.",
+      }}
+      left={
+        <>
           <SectionCard
             title="Generated charter sections"
-            subtitle="Use the project basics as your source of truth, then refine the section content below."
+            subtitle="Use the source project information as your baseline, then refine the section content below."
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <button
@@ -185,10 +251,14 @@ export default function CharterWorkspace({
               <CharterSectionEditor
                 label="Background / Business Need"
                 value={
-                  charter.backgroundBusinessNeed || previewPayload.backgroundBusinessNeed
+                  charter.backgroundBusinessNeed ||
+                  previewPayload.backgroundBusinessNeed
                 }
                 onChange={(e) =>
-                  handleCharterChange("backgroundBusinessNeed", e.target.value)
+                  handleCharterChange(
+                    "backgroundBusinessNeed",
+                    e.target.value
+                  )
                 }
                 rows={5}
               />
@@ -204,7 +274,9 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Project Objectives"
-                value={charter.projectObjectives || previewPayload.projectObjectives}
+                value={
+                  charter.projectObjectives || previewPayload.projectObjectives
+                }
                 onChange={(e) =>
                   handleCharterChange("projectObjectives", e.target.value)
                 }
@@ -214,13 +286,17 @@ export default function CharterWorkspace({
               <CharterSectionEditor
                 label="Scope Summary"
                 value={charter.scopeSummary || previewPayload.scopeSummary}
-                onChange={(e) => handleCharterChange("scopeSummary", e.target.value)}
+                onChange={(e) =>
+                  handleCharterChange("scopeSummary", e.target.value)
+                }
                 rows={7}
               />
 
               <CharterSectionEditor
                 label="Key Stakeholders"
-                value={charter.keyStakeholders || previewPayload.keyStakeholders}
+                value={
+                  charter.keyStakeholders || previewPayload.keyStakeholders
+                }
                 onChange={(e) =>
                   handleCharterChange("keyStakeholders", e.target.value)
                 }
@@ -229,7 +305,10 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Timeline / Milestones"
-                value={charter.timelineMilestones || previewPayload.timelineMilestones}
+                value={
+                  charter.timelineMilestones ||
+                  previewPayload.timelineMilestones
+                }
                 onChange={(e) =>
                   handleCharterChange("timelineMilestones", e.target.value)
                 }
@@ -239,20 +318,27 @@ export default function CharterWorkspace({
               <CharterSectionEditor
                 label="Assumptions"
                 value={charter.assumptions || previewPayload.assumptions}
-                onChange={(e) => handleCharterChange("assumptions", e.target.value)}
+                onChange={(e) =>
+                  handleCharterChange("assumptions", e.target.value)
+                }
                 rows={4}
               />
 
               <CharterSectionEditor
                 label="Constraints"
                 value={charter.constraints || previewPayload.constraints}
-                onChange={(e) => handleCharterChange("constraints", e.target.value)}
+                onChange={(e) =>
+                  handleCharterChange("constraints", e.target.value)
+                }
                 rows={4}
               />
 
               <CharterSectionEditor
                 label="Risks / Dependencies"
-                value={charter.risksDependencies || previewPayload.risksDependencies}
+                value={
+                  charter.risksDependencies ||
+                  previewPayload.risksDependencies
+                }
                 onChange={(e) =>
                   handleCharterChange("risksDependencies", e.target.value)
                 }
@@ -261,7 +347,9 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Success Criteria"
-                value={charter.successCriteria || previewPayload.successCriteria}
+                value={
+                  charter.successCriteria || previewPayload.successCriteria
+                }
                 onChange={(e) =>
                   handleCharterChange("successCriteria", e.target.value)
                 }
@@ -275,7 +363,10 @@ export default function CharterWorkspace({
                   previewPayload.initialValueHypothesis
                 }
                 onChange={(e) =>
-                  handleCharterChange("initialValueHypothesis", e.target.value)
+                  handleCharterChange(
+                    "initialValueHypothesis",
+                    e.target.value
+                  )
                 }
                 rows={4}
               />
@@ -287,117 +378,98 @@ export default function CharterWorkspace({
                   previewPayload.recommendedNextSteps
                 }
                 onChange={(e) =>
-                  handleCharterChange("recommendedNextSteps", e.target.value)
+                  handleCharterChange(
+                    "recommendedNextSteps",
+                    e.target.value
+                  )
                 }
                 rows={4}
               />
             </div>
           </SectionCard>
-        </div>
-
-        <div className="space-y-6">
-          <SectionCard
-            title="Charter text preview"
-            subtitle="This is the full copy-ready charter text built from your current content."
-          >
-            <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
-              <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
-                {effectiveCharterText}
-              </pre>
-            </div>
-
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <button
-                type="button"
-                onClick={handleRefreshTextFromSections}
-                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-              >
-                Refresh Text
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCopyCharter}
-                className="rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
-              >
-                {copyStatus === "copied"
-                  ? "Charter Copied"
-                  : copyStatus === "failed"
-                  ? "Copy Failed"
-                  : "Copy Charter"}
-              </button>
-            </div>
-          </SectionCard>
 
           <SectionCard
-            title="AI refinement prompt"
-            subtitle="Use this if you want an AI partner to improve the charter while preserving the known project facts."
+            title="Charter source snapshot"
+            subtitle="These basics continue to feed the charter."
           >
-            <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
-              <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
-                {effectiveAiPrompt}
-              </pre>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OutputSummaryCard title="Project Title" value={basics.title} />
+              <OutputSummaryCard
+                title="Project Objective"
+                value={basics.projectObjective}
+              />
+              <OutputSummaryCard
+                title="Expected Business Outcome"
+                value={basics.expectedBusinessOutcome}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Delivery Approach"
+                value={basics.deliveryApproach}
+              />
+              <OutputSummaryCard title="In Scope" value={basics.scopeIn} />
+              <OutputSummaryCard title="Out of Scope" value={basics.scopeOut} />
+              <OutputSummaryCard
+                title="Success Criteria"
+                value={basics.successCriteria}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Initial Value Hypothesis"
+                value={basics.initialValueHypothesis}
+                accent="orange"
+              />
             </div>
           </SectionCard>
-
-          <SectionCard
-            title="Paste AI refinement response"
-            subtitle="You can store the AI feedback or refined charter notes here until you decide how to apply them."
-          >
-            <TextArea
-              value={charter.aiResponse}
-              onChange={(e) => handleCharterChange("aiResponse", e.target.value)}
-              placeholder={`Paste any refined charter response or notes here.
+        </>
+      }
+      right={
+        <PromptPanel
+          promptTitle="Charter preview + AI refinement panel"
+          promptSubtitle="Use the current draft as your working charter and the prompt to refine it with an AI partner."
+          promptText={effectiveAiPrompt}
+          onRefreshPrompt={handleGenerateFromProject}
+          onCopyPrompt={handleCopyCharter}
+          copyStatus={copyStatus}
+          responseTitle="Paste AI refinement response"
+          responseSubtitle="Store the refined charter response or notes here until you decide how to apply them."
+          responseValue={charter.aiResponse}
+          onResponseChange={(e) =>
+            handleCharterChange("aiResponse", e.target.value)
+          }
+          responsePlaceholder={`Paste any refined charter response or notes here.
 
 Suggested structure:
 A. Refined Charter
 B. Open Questions
 C. Areas that still need confirmation
 D. Suggested next actions`}
-              rows={12}
-            />
-          </SectionCard>
-
-          <SectionCard
-            title="Charter source snapshot"
-            subtitle="These basics are what currently feed the charter."
-          >
-            <div className="space-y-3">
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
-                  Project Title
-                </p>
-                <p className="mt-2 text-sm text-slate-700">
-                  {basics.title || "Not yet provided"}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
-                  Objective + Outcome
-                </p>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-                  {[
-                    basics.projectObjective || "Objective not yet provided",
-                    "",
-                    basics.expectedBusinessOutcome ||
-                      "Expected business outcome not yet provided",
-                  ].join("\n")}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
-                  Delivery Approach
-                </p>
-                <p className="mt-2 text-sm text-slate-700">
-                  {basics.deliveryApproach || "hybrid"}
-                </p>
-              </div>
-            </div>
-          </SectionCard>
-        </div>
-      </div>
-    </div>
+          responseRows={12}
+          onParseResponse={handleRefreshTextFromSections}
+          onApplyResponse={handleRefreshTextFromSections}
+          parseLabel="Refresh Charter Text"
+          applyLabel="Apply Current Draft"
+          helperTitle="How to use Charter"
+          helperSteps={[
+            {
+              title: "Step 1",
+              body: "Generate the charter from Project Basics and Ideation if you haven’t done that yet.",
+            },
+            {
+              title: "Step 2",
+              body: "Edit the individual charter sections until they are sponsor-ready and practical.",
+            },
+            {
+              title: "Step 3",
+              body: "Use the AI refinement prompt if you want an AI partner to improve clarity while preserving known facts.",
+            },
+            {
+              title: "Step 4",
+              body: "Refresh and copy the charter text once the draft is strong enough to feed Plan Studio.",
+            },
+          ]}
+        />
+      }
+    />
   );
 }
