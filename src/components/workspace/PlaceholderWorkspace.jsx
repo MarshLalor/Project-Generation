@@ -5,21 +5,21 @@ import PillBadge from "../common/PillBadge";
 export default function PlaceholderWorkspace({ tab, guide, onGoHome }) {
   return (
     <div className="space-y-6">
-      <SectionCard className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+      <SectionCard className="border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-50">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="mb-3 flex flex-wrap gap-2">
-              <PillBadge tone="cyan">Workspace Shell</PillBadge>
-              <PillBadge tone="amber">Ready for Next Build Step</PillBadge>
+              <PillBadge tone="blue">Workspace Shell</PillBadge>
+              <PillBadge tone="orange">Ready for Next Build Step</PillBadge>
             </div>
 
-            <h2 className="text-3xl font-semibold text-white">
+            <h2 className="text-3xl font-semibold text-slate-900">
               {tab?.label || "Workspace"}
             </h2>
 
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-700">
               This is the placeholder workspace for the{" "}
-              <span className="font-medium text-white">
+              <span className="font-medium text-slate-900">
                 {tab?.label || "selected"}
               </span>{" "}
               tab. The landing page shell, navigation, flow, and tab guide are
@@ -32,7 +32,7 @@ export default function PlaceholderWorkspace({ tab, guide, onGoHome }) {
           <button
             type="button"
             onClick={onGoHome}
-            className="rounded-2xl bg-white/5 px-5 py-3 text-sm font-medium text-slate-200 ring-1 ring-white/10 transition hover:bg-white/10"
+            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
           >
             Back to Home
           </button>
@@ -42,17 +42,17 @@ export default function PlaceholderWorkspace({ tab, guide, onGoHome }) {
       {guide && (
         <div className="grid gap-6 lg:grid-cols-3">
           <SectionCard title="Purpose">
-            <p className="text-sm leading-7 text-slate-300">{guide.purpose}</p>
+            <p className="text-sm leading-7 text-slate-700">{guide.purpose}</p>
           </SectionCard>
 
           <SectionCard title="What the user does">
-            <p className="text-sm leading-7 text-slate-300">
+            <p className="text-sm leading-7 text-slate-700">
               {guide.userAction}
             </p>
           </SectionCard>
 
           <SectionCard title="Expected output">
-            <p className="text-sm leading-7 text-slate-300">{guide.output}</p>
+            <p className="text-sm leading-7 text-slate-700">{guide.output}</p>
           </SectionCard>
         </div>
       )}
@@ -61,8 +61,9 @@ export default function PlaceholderWorkspace({ tab, guide, onGoHome }) {
         <SectionCard
           title="Suggested next build step"
           subtitle="Recommended for this tab"
+          className="bg-white"
         >
-          <ul className="space-y-3 text-sm leading-7 text-slate-300">
+          <ul className="space-y-3 text-sm leading-7 text-slate-700">
             <li>• Add the core section form fields and editable text areas</li>
             <li>• Add a right-side AI prompt preview panel</li>
             <li>• Add Copy Prompt and Paste AI Response actions</li>
@@ -74,8 +75,9 @@ export default function PlaceholderWorkspace({ tab, guide, onGoHome }) {
         <SectionCard
           title="Future product behavior"
           subtitle="How this tab should evolve"
+          className="bg-sky-50/50"
         >
-          <ul className="space-y-3 text-sm leading-7 text-slate-300">
+          <ul className="space-y-3 text-sm leading-7 text-slate-700">
             <li>
               • Use the project charter as the minimum required source of truth
             </li>
