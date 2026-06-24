@@ -116,3 +116,43 @@ export function getCostEstimateCompletion(projectData) {
     costEstimate.assumptionsConfidenceNotes,
   ]);
 }
+
+export function getAssumptionsCompletion(projectData) {
+  const assumptions = projectData?.assumptions || {};
+
+  const laborRows = assumptions?.laborRates?.roles || [];
+  const effortRows = assumptions?.effortAssumptions?.items || [];
+  const volumeRows = assumptions?.volumeAssumptions?.items || [];
+  const benchmarkRows = assumptions?.benchmarkAssumptions?.items || [];
+
+  const laborCount = laborRows.filter((row) =>
+    Object.values(row || {}).some((value) => hasText(value))
+  ).length;
+
+  const effortCount = effortRows.filter((row) =>
+    Object.values(row || {}).some((value) => hasText(value))
+  ).length;
+
+  const volumeCount = volumeRows.filter((row) =>
+    Object.values(row || {}).some((value) => hasText(value))
+  ).length;
+
+  const benchmarkCount = benchmarkRows.filter((row) =>
+    Object.values(row || {}).some((value) => hasText(value))
+  ).length;
+
+  return countCompletedFields([
+    laborCount ? String(laborCount) : "",
+    effortCount ? String(effortCount) : "",
+    volumeCount ? String(volumeCount) : "",
+    benchmarkCount ? String(benchmarkCount) : "",
+    assumptions?.laborRates?.notes,
+    assumptions?.effortAssumptions?.notes,
+    assumptions?.volumeAssumptions?.notes,
+    assumptions?.benchmarkAssumptions?.notes,
+    assumptions?.calculationAssumptions?.burdenFactor,
+    assumptions?.calculationAssumptions?.confidenceLevel,
+    assumptions?.calculationAssumptions?.notes,
+    assumptions?.openQuestions,
+  ]);
+}
