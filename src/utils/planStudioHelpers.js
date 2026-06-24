@@ -9,7 +9,7 @@ export const planSectionConfigs = [
     shortLabel: "Scope",
     tone: "blue",
     purpose:
-      "Define the scope approach, draft scope statement, boundaries, exclusions, and key deliverables.",
+      "Define the scope approach, draft scope boundaries, in/out decisions, deliverables, and work packages.",
     outputHint:
       "Scope statement, in/out boundaries, work packages, missing information, and next actions.",
     tasks: [
@@ -262,14 +262,3 @@ export function parsePlanStudioResponse(responseText) {
 
 export function getPlanStudioProgress(planStudio) {
   const sections = planStudio?.sections || {};
-  const entries = Object.entries(sections);
-
-  const total = entries.length;
-  const completed = entries.filter(([, value]) => {
-    return value?.draftContent && String(value.draftContent).trim();
-  }).length;
-
-  const percent = total ? Math.round((completed / total) * 100) : 0;
-
-  return { total, completed, percent };
-}
