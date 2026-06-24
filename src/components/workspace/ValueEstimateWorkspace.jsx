@@ -1,17 +1,23 @@
 import React, { useMemo, useState } from "react";
+import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
-import PillBadge from "../common/PillBadge";
+import PromptPanel from "./PromptPanel";
+import OutputSummaryCard from "./OutputSummaryCard";
 import {
   buildValueEstimatePrompt,
-  getValueEstimateProgress,
   parseValueEstimateResponse,
 } from "../../utils/valueCostHelpers";
+import { getValueEstimateCompletion } from "../../utils/workspaceHelpers";
 
 function FieldLabel({ label, helper }) {
   return (
     <div className="mb-2">
-      <label className="block text-sm font-semibold text-slate-900">{label}</label>
-      {helper && <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>}
+      <label className="block text-sm font-semibold text-slate-900">
+        {label}
+      </label>
+      {helper ? (
+        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
+      ) : null}
     </div>
   );
 }
@@ -28,22 +34,6 @@ function TextArea({ value, onChange, placeholder, rows = 4 }) {
   );
 }
 
-function OutputBlock({ title, value, accent = "sky" }) {
-  const classes =
-    accent === "orange"
-      ? "border-orange-200 bg-orange-50"
-      : "border-sky-100 bg-sky-50/60";
-
-  return (
-    <div className={`rounded-2xl border p-4 ${classes}`}>
-      <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-        {value && value.trim() ? value : "No content yet."}
-      </p>
-    </div>
-  );
-}
-
 export default function ValueEstimateWorkspace({
   projectData,
   setProjectData,
@@ -52,11 +42,13 @@ export default function ValueEstimateWorkspace({
   onContinueToCost,
 }) {
   const [copyStatus, setCopyStatus] = useState("idle");
-  const valueEstimate = projectData.valueEstimate;
+
   const basics = projectData.projectBasics;
-  const progress = useMemo(
-    () => getValueEstimateProgress(valueEstimate),
-    [valueEstimate]
+  const valueEstimate = projectData.valueEstimate;
+
+  const completion = useMemo(
+    () => getValueEstimateCompletion(projectData),
+    [projectData]
   );
 
   const livePrompt = useMemo(() => {
@@ -123,82 +115,74 @@ export default function ValueEstimateWorkspace({
   };
 
   return (
-    <div className="space-y-6">
-      <SectionCard className="border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-50">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="mb-3 flex flex-wrap gap-2">
-              <PillBadge tone="blue">Value Estimate</PillBadge>
-              <PillBadge tone="softBlue">Outcome Focused</PillBadge>
-              <PillBadge tone="orange">AI Estimation Workflow</PillBadge>
-            </div>
-
-            <h2 className="text-3xl font-semibold text-slate-900">
-              Value Estimate Workspace
-            </h2>
-
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-700">
-              Use this tab to identify value drivers, capture known and missing
-              variables, and build a practical high-level benefit estimate tied
-              to your project outcomes.
-            </p>
-          </div>
-
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <button
-              type="button"
-              onClick={onGoHome}
-              className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
-            >
-              Back to Home
-            </button>
-
-            <button
-              type="button"
-              onClick={onBackToPlan}
-              className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
-            >
-              Back to Plan Studio
-            </button>
-
-            <button
-              type="button"
-              onClick={onContinueToCost}
-              className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
-            >
-              Go to Cost Estimate
-            </button>
-          </div>
-        </div>
-      </SectionCard>
-
-      <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
-        <div className="space-y-6">
-          <SectionCard
-            title="Value estimate progress"
-            subtitle="This tracks how complete the value estimation workspace is."
+    <BuilderLayout
+      badges={[
+        { label: "Value Estimate", tone: "blue" },
+        { label: "Outcome Focused", tone: "softBlue" },
+        { label: "AI Estimation Workflow", tone: "orange" },
+      ]}
+      title="Value Estimate Workspace"
+      description="Use this tab to identify value drivers, capture known and missing variables, and build a practical high-level benefit estimate tied to your project outcomes."
+      actions={
+        <>
+          <button
+            type="button"
+            onClick={onGoHome}
+            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
           >
-            <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-              <p className="text-sm font-semibold text-orange-700">
-                Value estimate completeness
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
-                {progress.percent}%
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                {progress.completed} of {progress.total} sections populated
-              </p>
-            </div>
+            Back to Home
+          </button>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <OutputBlock
-                title="Outcome Focus"
+          <button
+            type="button"
+            onClick={onBackToPlan}
+            className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
+          >
+            Back to Plan Studio
+          </button>
+
+          <button
+            type="button"
+            onClick={onContinueToCost}
+            className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
+          >
+            Go to Cost Estimate
+          </button>
+        </>
+      }
+      progress={{
+        percent: completion.percent,
+        completed: completion.completed,
+        total: completion.total,
+        metricLabel: "Value estimate completeness",
+        detail: `${completion.completed} of ${completion.total} tracked value estimate fields completed`,
+        secondaryLabel: "Why this matters",
+        secondaryText:
+          "This section turns outcomes, assumptions, and known variables into a usable value story for sponsor or executive review.",
+      }}
+      left={
+        <>
+          <SectionCard
+            title="Value estimate context"
+            subtitle="These source items shape the value story and help anchor later calculations."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OutputSummaryCard
+                title="Expected Business Outcome"
                 value={basics.expectedBusinessOutcome}
                 accent="orange"
               />
-              <OutputBlock
+              <OutputSummaryCard
                 title="Initial Value Hypothesis"
                 value={basics.initialValueHypothesis}
+              />
+              <OutputSummaryCard
+                title="Project Objective"
+                value={basics.projectObjective}
+              />
+              <OutputSummaryCard
+                title="Delivery Approach"
+                value={basics.deliveryApproach}
               />
             </div>
           </SectionCard>
@@ -218,7 +202,9 @@ export default function ValueEstimateWorkspace({
                   onChange={(e) =>
                     updateValueField("likelyValueDrivers", e.target.value)
                   }
-                  placeholder={"One item per line\nExample: labor savings from reduced manual review\nExample: error reduction and rework avoidance"}
+                  placeholder={`One item per line
+Example: labor savings from reduced manual review
+Example: error reduction and rework avoidance`}
                   rows={5}
                 />
               </div>
@@ -230,8 +216,12 @@ export default function ValueEstimateWorkspace({
                 />
                 <TextArea
                   value={valueEstimate.knownInputs}
-                  onChange={(e) => updateValueField("knownInputs", e.target.value)}
-                  placeholder={"One item per line\nExample: approx. 20,000 ads reviewed per month\nExample: Sr. managers spend 3 hours per week on final review"}
+                  onChange={(e) =>
+                    updateValueField("knownInputs", e.target.value)
+                  }
+                  placeholder={`One item per line
+Example: approx. 20,000 ads reviewed per month
+Example: Sr. managers spend 3 hours per week on final review`}
                   rows={5}
                 />
               </div>
@@ -243,8 +233,12 @@ export default function ValueEstimateWorkspace({
                 />
                 <TextArea
                   value={valueEstimate.missingInputs}
-                  onChange={(e) => updateValueField("missingInputs", e.target.value)}
-                  placeholder={"One item per line\nExample: fully loaded hourly rates by role\nExample: current error/rework rate"}
+                  onChange={(e) =>
+                    updateValueField("missingInputs", e.target.value)
+                  }
+                  placeholder={`One item per line
+Example: fully loaded hourly rates by role
+Example: current error/rework rate`}
                   rows={5}
                 />
               </div>
@@ -259,7 +253,9 @@ export default function ValueEstimateWorkspace({
                   onChange={(e) =>
                     updateValueField("followUpQuestions", e.target.value)
                   }
-                  placeholder={"One question per line\nExample: How many ads are reviewed per week by each role?\nExample: What % of review effort could be reduced?"}
+                  placeholder={`One question per line
+Example: How many ads are reviewed per week by each role?
+Example: What % of review effort could be reduced?`}
                   rows={6}
                 />
               </div>
@@ -274,7 +270,9 @@ export default function ValueEstimateWorkspace({
                   onChange={(e) =>
                     updateValueField("estimationMethods", e.target.value)
                   }
-                  placeholder={"One item per line\nExample: use industry average salaries if internal data is unavailable\nExample: estimate fully loaded hourly rate from salary × burden factor"}
+                  placeholder={`One item per line
+Example: use industry average salaries if internal data is unavailable
+Example: estimate fully loaded hourly rate from salary × burden factor`}
                   rows={5}
                 />
               </div>
@@ -282,6 +280,129 @@ export default function ValueEstimateWorkspace({
               <div>
                 <FieldLabel
                   label="Preliminary High-Level Value Model"
-                  helper="Capture the structure of the estimate, not just the final number."
+                  helper="Capture the structure of the estimate, not only the final number."
                 />
                 <TextArea
+                  value={valueEstimate.preliminaryValueModel}
+                  onChange={(e) =>
+                    updateValueField("preliminaryValueModel", e.target.value)
+                  }
+                  placeholder={`Example:
+Annual labor savings = review volume × hours saved × hourly labor rate
+Annual rework savings = error volume reduction × rework hours × weighted labor rate`}
+                  rows={7}
+                />
+              </div>
+
+              <div>
+                <FieldLabel
+                  label="Confidence / Assumption Notes"
+                  helper="Track where the estimate is strong and where assumptions still drive the numbers."
+                />
+                <TextArea
+                  value={valueEstimate.confidenceNotes}
+                  onChange={(e) =>
+                    updateValueField("confidenceNotes", e.target.value)
+                  }
+                  placeholder={`One item per line
+Example: labor rates are still benchmark-based
+Example: current-state QA effort has not yet been validated by time study`}
+                  rows={5}
+                />
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Parsed value estimate preview"
+            subtitle="These are the reusable structured outputs after parsing an AI response."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OutputSummaryCard
+                title="Likely Value Drivers"
+                value={valueEstimate.likelyValueDrivers}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Known Inputs"
+                value={valueEstimate.knownInputs}
+              />
+              <OutputSummaryCard
+                title="Missing Inputs"
+                value={valueEstimate.missingInputs}
+              />
+              <OutputSummaryCard
+                title="Follow-Up Questions"
+                value={valueEstimate.followUpQuestions}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Estimation Methods"
+                value={valueEstimate.estimationMethods}
+              />
+              <OutputSummaryCard
+                title="Preliminary Value Model"
+                value={valueEstimate.preliminaryValueModel}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Confidence Notes"
+                value={valueEstimate.confidenceNotes}
+              />
+            </div>
+          </SectionCard>
+        </>
+      }
+      right={
+        <PromptPanel
+          promptTitle="AI prompt preview"
+          promptSubtitle="Refresh the prompt whenever Project Basics, Charter, or Plan Studio content changes."
+          promptText={livePrompt}
+          onRefreshPrompt={handleGeneratePrompt}
+          onCopyPrompt={handleCopyPrompt}
+          copyStatus={copyStatus}
+          responseTitle="Paste AI response"
+          responseSubtitle="Paste the AI value estimate response here using the exact headings requested in the prompt."
+          responseValue={valueEstimate.aiResponse}
+          onResponseChange={(e) =>
+            updateValueField("aiResponse", e.target.value)
+          }
+          responsePlaceholder={`Paste the AI response here.
+
+Required structure:
+A. Likely Value Drivers
+B. Known Inputs
+C. Missing Inputs
+D. Step-by-Step Follow-Up Questions
+E. Suggested Estimation Methods
+F. Preliminary High-Level Value Model
+G. Confidence / Assumption Notes`}
+          responseRows={18}
+          onParseResponse={handleParseResponse}
+          onApplyResponse={handleApplyParsed}
+          parseLabel="Parse AI Response"
+          applyLabel="Apply to Value Estimate"
+          helperTitle="How to use Value Estimate"
+          helperSteps={[
+            {
+              title: "Step 1",
+              body: "Refresh the prompt so it uses the latest charter and planning information.",
+            },
+            {
+              title: "Step 2",
+              body: "Ask the AI to identify value drivers, known variables, missing data, and practical estimation methods.",
+            },
+            {
+              title: "Step 3",
+              body: "Paste the response back into the tool and parse it into structured estimate fields.",
+            },
+            {
+              title: "Step 4",
+              body: "Refine the preliminary model and assumptions before moving to the cost estimate.",
+            },
+          ]}
+        />
+      }
+    />
+  );
+}

@@ -1,17 +1,23 @@
 import React, { useMemo, useState } from "react";
+import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
-import PillBadge from "../common/PillBadge";
+import PromptPanel from "./PromptPanel";
+import OutputSummaryCard from "./OutputSummaryCard";
 import {
   buildCostEstimatePrompt,
-  getCostEstimateProgress,
   parseCostEstimateResponse,
 } from "../../utils/valueCostHelpers";
+import { getCostEstimateCompletion } from "../../utils/workspaceHelpers";
 
 function FieldLabel({ label, helper }) {
   return (
     <div className="mb-2">
-      <label className="block text-sm font-semibold text-slate-900">{label}</label>
-      {helper && <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>}
+      <label className="block text-sm font-semibold text-slate-900">
+        {label}
+      </label>
+      {helper ? (
+        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
+      ) : null}
     </div>
   );
 }
@@ -28,22 +34,6 @@ function TextArea({ value, onChange, placeholder, rows = 4 }) {
   );
 }
 
-function OutputBlock({ title, value, accent = "sky" }) {
-  const classes =
-    accent === "orange"
-      ? "border-orange-200 bg-orange-50"
-      : "border-sky-100 bg-sky-50/60";
-
-  return (
-    <div className={`rounded-2xl border p-4 ${classes}`}>
-      <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-        {value && value.trim() ? value : "No content yet."}
-      </p>
-    </div>
-  );
-}
-
 export default function CostEstimateWorkspace({
   projectData,
   setProjectData,
@@ -52,11 +42,13 @@ export default function CostEstimateWorkspace({
   onContinueToOutputs,
 }) {
   const [copyStatus, setCopyStatus] = useState("idle");
-  const costEstimate = projectData.costEstimate;
+
   const basics = projectData.projectBasics;
-  const progress = useMemo(
-    () => getCostEstimateProgress(costEstimate),
-    [costEstimate]
+  const costEstimate = projectData.costEstimate;
+
+  const completion = useMemo(
+    () => getCostEstimateCompletion(projectData),
+    [projectData]
   );
 
   const livePrompt = useMemo(() => {
@@ -123,82 +115,74 @@ export default function CostEstimateWorkspace({
   };
 
   return (
-    <div className="space-y-6">
-      <SectionCard className="border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-50">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="mb-3 flex flex-wrap gap-2">
-              <PillBadge tone="blue">Cost Estimate</PillBadge>
-              <PillBadge tone="softBlue">Implementation + Ongoing Cost</PillBadge>
-              <PillBadge tone="orange">AI Estimation Workflow</PillBadge>
-            </div>
-
-            <h2 className="text-3xl font-semibold text-slate-900">
-              Cost Estimate Workspace
-            </h2>
-
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-700">
-              Use this tab to create a high-level cost estimate for Year 1 and
-              recurring annual cost, including labor, software, implementation,
-              training, integration, and support assumptions.
-            </p>
-          </div>
-
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <button
-              type="button"
-              onClick={onGoHome}
-              className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
-            >
-              Back to Home
-            </button>
-
-            <button
-              type="button"
-              onClick={onBackToValue}
-              className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
-            >
-              Back to Value Estimate
-            </button>
-
-            <button
-              type="button"
-              onClick={onContinueToOutputs}
-              className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
-            >
-              Go to Outputs
-            </button>
-          </div>
-        </div>
-      </SectionCard>
-
-      <div className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
-        <div className="space-y-6">
-          <SectionCard
-            title="Cost estimate progress"
-            subtitle="This tracks how complete the cost estimate workspace is."
+    <BuilderLayout
+      badges={[
+        { label: "Cost Estimate", tone: "blue" },
+        { label: "Implementation + Ongoing Cost", tone: "softBlue" },
+        { label: "AI Estimation Workflow", tone: "orange" },
+      ]}
+      title="Cost Estimate Workspace"
+      description="Use this tab to create a high-level cost estimate for Year 1 and recurring annual cost, including labor, software, implementation, training, integration, and support assumptions."
+      actions={
+        <>
+          <button
+            type="button"
+            onClick={onGoHome}
+            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
           >
-            <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-              <p className="text-sm font-semibold text-orange-700">
-                Cost estimate completeness
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
-                {progress.percent}%
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                {progress.completed} of {progress.total} sections populated
-              </p>
-            </div>
+            Back to Home
+          </button>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <OutputBlock
+          <button
+            type="button"
+            onClick={onBackToValue}
+            className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
+          >
+            Back to Value Estimate
+          </button>
+
+          <button
+            type="button"
+            onClick={onContinueToOutputs}
+            className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
+          >
+            Go to Outputs
+          </button>
+        </>
+      }
+      progress={{
+        percent: completion.percent,
+        completed: completion.completed,
+        total: completion.total,
+        metricLabel: "Cost estimate completeness",
+        detail: `${completion.completed} of ${completion.total} tracked cost estimate fields completed`,
+        secondaryLabel: "Why this matters",
+        secondaryText:
+          "This section gives you the rough investment side of the business case so value and cost can be reviewed together.",
+      }}
+      left={
+        <>
+          <SectionCard
+            title="Cost estimate context"
+            subtitle="These context items shape the cost story and affect how the estimate should be framed."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OutputSummaryCard
                 title="Delivery Approach"
                 value={basics.deliveryApproach}
                 accent="orange"
               />
-              <OutputBlock
+              <OutputSummaryCard
                 title="Estimated Budget Range"
                 value={basics.estimatedBudgetRange}
+              />
+              <OutputSummaryCard
+                title="Project Objective"
+                value={basics.projectObjective}
+              />
+              <OutputSummaryCard
+                title="Expected Business Outcome"
+                value={basics.expectedBusinessOutcome}
               />
             </div>
           </SectionCard>
@@ -211,14 +195,17 @@ export default function CostEstimateWorkspace({
               <div>
                 <FieldLabel
                   label="Cost Categories"
-                  helper="Separate cost types in a way that will support a rough cost model."
+                  helper="Separate cost types in a way that supports a rough cost model."
                 />
                 <TextArea
                   value={costEstimate.costCategories}
                   onChange={(e) =>
                     updateCostField("costCategories", e.target.value)
                   }
-                  placeholder={"One item per line\nExample: software / license cost\nExample: implementation partner cost\nExample: internal labor cost"}
+                  placeholder={`One item per line
+Example: software / license cost
+Example: implementation partner cost
+Example: internal labor cost`}
                   rows={5}
                 />
               </div>
@@ -230,8 +217,12 @@ export default function CostEstimateWorkspace({
                 />
                 <TextArea
                   value={costEstimate.knownInputs}
-                  onChange={(e) => updateCostField("knownInputs", e.target.value)}
-                  placeholder={"One item per line\nExample: vendor quote estimate available\nExample: 2 PM resources needed part-time for 12 weeks"}
+                  onChange={(e) =>
+                    updateCostField("knownInputs", e.target.value)
+                  }
+                  placeholder={`One item per line
+Example: vendor quote estimate available
+Example: 2 PM resources needed part-time for 12 weeks`}
                   rows={5}
                 />
               </div>
@@ -243,8 +234,13 @@ export default function CostEstimateWorkspace({
                 />
                 <TextArea
                   value={costEstimate.missingInputs}
-                  onChange={(e) => updateCostField("missingInputs", e.target.value)}
-                  placeholder={"One item per line\nExample: software license tier\nExample: integration labor hours\nExample: training effort"}
+                  onChange={(e) =>
+                    updateCostField("missingInputs", e.target.value)
+                  }
+                  placeholder={`One item per line
+Example: software license tier
+Example: integration labor hours
+Example: training effort`}
                   rows={5}
                 />
               </div>
@@ -259,7 +255,9 @@ export default function CostEstimateWorkspace({
                   onChange={(e) =>
                     updateCostField("followUpQuestions", e.target.value)
                   }
-                  placeholder={"One question per line\nExample: What is the expected software subscription model?\nExample: How many internal hours will be needed for implementation?"}
+                  placeholder={`One question per line
+Example: What is the expected software subscription model?
+Example: How many internal hours will be needed for implementation?`}
                   rows={6}
                 />
               </div>
@@ -274,3 +272,142 @@ export default function CostEstimateWorkspace({
                   onChange={(e) =>
                     updateCostField("estimationMethods", e.target.value)
                   }
+                  placeholder={`One item per line
+Example: estimate internal labor using hourly rate assumptions
+Example: use low / expected / high range for vendor implementation`}
+                  rows={5}
+                />
+              </div>
+
+              <div>
+                <FieldLabel
+                  label="Preliminary Cost Estimate Summary"
+                  helper="Capture the early structure of the estimate including one-time and recurring views."
+                />
+                <TextArea
+                  value={costEstimate.preliminaryCostSummary}
+                  onChange={(e) =>
+                    updateCostField("preliminaryCostSummary", e.target.value)
+                  }
+                  placeholder={`Example:
+Year 1 cost = software + implementation + internal labor + training + contingency
+Recurring annual cost = ongoing license + support + maintenance`}
+                  rows={7}
+                />
+              </div>
+
+              <div>
+                <FieldLabel
+                  label="Assumptions and Confidence Notes"
+                  helper="Track what is still estimated, benchmark-based, or uncertain."
+                />
+                <TextArea
+                  value={costEstimate.assumptionsConfidenceNotes}
+                  onChange={(e) =>
+                    updateCostField(
+                      "assumptionsConfidenceNotes",
+                      e.target.value
+                    )
+                  }
+                  placeholder={`One item per line
+Example: internal labor rates are approximated
+Example: vendor integration scope still needs validation`}
+                  rows={5}
+                />
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Parsed cost estimate preview"
+            subtitle="These are the reusable structured outputs after parsing an AI response."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OutputSummaryCard
+                title="Cost Categories"
+                value={costEstimate.costCategories}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Known Inputs"
+                value={costEstimate.knownInputs}
+              />
+              <OutputSummaryCard
+                title="Missing Inputs"
+                value={costEstimate.missingInputs}
+              />
+              <OutputSummaryCard
+                title="Follow-Up Questions"
+                value={costEstimate.followUpQuestions}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Estimation Methods"
+                value={costEstimate.estimationMethods}
+              />
+              <OutputSummaryCard
+                title="Preliminary Cost Summary"
+                value={costEstimate.preliminaryCostSummary}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Assumptions / Confidence Notes"
+                value={costEstimate.assumptionsConfidenceNotes}
+              />
+            </div>
+          </SectionCard>
+        </>
+      }
+      right={
+        <PromptPanel
+          promptTitle="AI prompt preview"
+          promptSubtitle="Refresh the prompt whenever the project context changes."
+          promptText={livePrompt}
+          onRefreshPrompt={handleGeneratePrompt}
+          onCopyPrompt={handleCopyPrompt}
+          copyStatus={copyStatus}
+          responseTitle="Paste AI response"
+          responseSubtitle="Paste the AI cost estimate response here using the exact headings requested in the prompt."
+          responseValue={costEstimate.aiResponse}
+          onResponseChange={(e) =>
+            updateCostField("aiResponse", e.target.value)
+          }
+          responsePlaceholder={`Paste the AI response here.
+
+Required structure:
+A. Cost Categories
+B. Known Inputs
+C. Missing Inputs
+D. Step-by-Step Questions
+E. Recommended Estimation Methods
+F. Preliminary Cost Estimate Summary
+G. Assumptions and Confidence Notes`}
+          responseRows={18}
+          onParseResponse={handleParseResponse}
+          onApplyResponse={handleApplyParsed}
+          parseLabel="Parse AI Response"
+          applyLabel="Apply to Cost Estimate"
+          helperTitle="How to use Cost Estimate"
+          helperSteps={[
+            {
+              title: "Step 1",
+              body: "Refresh the prompt so it uses the latest charter, plan, and value context.",
+            },
+            {
+              title: "Step 2",
+              body: "Ask the AI to identify cost categories, known cost inputs, missing data, and estimation logic.",
+            },
+            {
+              title: "Step 3",
+              body: "Paste the result back into the tool and parse it into structured cost estimate fields.",
+            },
+            {
+              title: "Step 4",
+              body: "Refine the assumptions, confirm missing inputs, and prepare the estimate for the Outputs tab.",
+            },
+          ]}
+        />
+      }
+    />
+  );
+}
