@@ -2,10 +2,6 @@ export function hasText(value) {
   return !!(value && String(value).trim());
 }
 
-export function hasText(value) {
-  return !!(value && String(value).trim());
-}
-
 export function countCompletedFields(values = []) {
   const completed = values.filter((value) => hasText(value)).length;
   const total = values.length;
@@ -90,5 +86,33 @@ export function getCharterCompletion(projectData) {
     charter.initialValueHypothesis,
     charter.recommendedNextSteps,
     charter.charterText,
+  ]);
+}
+
+export function getValueEstimateCompletion(projectData) {
+  const valueEstimate = projectData?.valueEstimate || {};
+
+  return countCompletedFields([
+    valueEstimate.likelyValueDrivers,
+    valueEstimate.knownInputs,
+    valueEstimate.missingInputs,
+    valueEstimate.followUpQuestions,
+    valueEstimate.estimationMethods,
+    valueEstimate.preliminaryValueModel,
+    valueEstimate.confidenceNotes,
+  ]);
+}
+
+export function getCostEstimateCompletion(projectData) {
+  const costEstimate = projectData?.costEstimate || {};
+
+  return countCompletedFields([
+    costEstimate.costCategories,
+    costEstimate.knownInputs,
+    costEstimate.missingInputs,
+    costEstimate.followUpQuestions,
+    costEstimate.estimationMethods,
+    costEstimate.preliminaryCostSummary,
+    costEstimate.assumptionsConfidenceNotes,
   ]);
 }
