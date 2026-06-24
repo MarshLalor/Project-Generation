@@ -8,6 +8,7 @@ import CharterWorkspace from "./components/workspace/CharterWorkspace";
 import PlanStudioWorkspace from "./components/workspace/PlanStudioWorkspace";
 import ValueEstimateWorkspace from "./components/workspace/ValueEstimateWorkspace";
 import CostEstimateWorkspace from "./components/workspace/CostEstimateWorkspace";
+import AssumptionsWorkspace from "./components/workspace/AssumptionsWorkspace";
 import OutputsWorkspace from "./components/workspace/OutputsWorkspace";
 import { topNavTabs, tabGuideCards } from "./data/projectBuilderConfig";
 import {
@@ -18,6 +19,7 @@ import {
   saveProjectToSlot,
   setLastActiveSlot,
 } from "./utils/storageHelpers";
+import { createDefaultAssumptionsState } from "./utils/assumptionsHelpers";
 
 const initialProjectData = {
   projectBasics: {
@@ -144,6 +146,7 @@ const initialProjectData = {
     preliminaryCostSummary: "",
     assumptionsConfidenceNotes: "",
   },
+  assumptions: createDefaultAssumptionsState(),
 };
 
 function hasAnyMeaningfulData(value) {
@@ -291,6 +294,14 @@ export default function App() {
             setProjectData={setProjectData}
             onGoHome={() => setActiveTab("home")}
             onBackToValue={() => setActiveTab("value-estimate")}
+            onContinueToOutputs={() => setActiveTab("assumptions")}
+          />
+        ) : activeTab === "assumptions" ? (
+          <AssumptionsWorkspace
+            projectData={projectData}
+            setProjectData={setProjectData}
+            onGoHome={() => setActiveTab("home")}
+            onBackToCost={() => setActiveTab("cost-estimate")}
             onContinueToOutputs={() => setActiveTab("outputs")}
           />
         ) : activeTab === "outputs" ? (
@@ -298,7 +309,7 @@ export default function App() {
             projectData={projectData}
             setProjectData={setProjectData}
             onGoHome={() => setActiveTab("home")}
-            onBackToCost={() => setActiveTab("cost-estimate")}
+            onBackToCost={() => setActiveTab("assumptions")}
           />
         ) : (
           <PlaceholderWorkspace
