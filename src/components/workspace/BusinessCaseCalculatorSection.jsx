@@ -1,6 +1,7 @@
-import OutputSummaryCard from "./OutputSummaryCard";
 import React, { useMemo } from "react";
-import Sectionimport {import SectionCard from "../common/SectionCard";
+import SectionCard from "../common/SectionCard";
+import OutputSummaryCard from "./OutputSummaryCard";
+import {
   calculateScenarioSummary,
   ensureBusinessCaseState,
   formatCurrency,
