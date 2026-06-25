@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
+import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
-import PillBadge from "../common/PillBadge";
+import OutputSummaryCard from "./OutputSummaryCard";
 import {
   buildOutputsPayload,
   getOutputsReadiness,
@@ -31,9 +32,9 @@ function OutputPreviewCard({ title, value, onCopy, copyLabel, accent = "sky" }) 
         </button>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-white/70 bg-white p-4">
+      <div className="mt-4 max-h-[520px] overflow-auto rounded-2xl border border-white/70 bg-white p-4">
         <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
-          {value}
+          {value || "No output generated yet."}
         </pre>
       </div>
     </div>
@@ -62,11 +63,15 @@ export default function OutputsWorkspace({
   const [copyState, setCopyState] = useState("idle");
 
   const outputs = useMemo(() => buildOutputsPayload(projectData), [projectData]);
-  const readiness = useMemo(() => getOutputsReadiness(projectData), [projectData]);
+
+  const readiness = useMemo(
+    () => getOutputsReadiness(projectData),
+    [projectData]
+  );
 
   const copyText = async (text, label = "Copied") => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(text || "");
       setCopyState(label);
       window.setTimeout(() => setCopyState("idle"), 1800);
     } catch (error) {
@@ -80,74 +85,58 @@ export default function OutputsWorkspace({
   };
 
   return (
-    <div className="space-y-6">
-      <SectionCard className="border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-50">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="mb-3 flex flex-wrap gap-2">
-              <PillBadge tone="blue">Outputs Studio</PillBadge>
-              <PillBadge tone="softBlue">Compiled Deliverables</PillBadge>
-              <PillBadge tone="orange">Export-Ready Shell</PillBadge>
-            </div>
+    <BuilderLayout
+      badges={[
+        { label: "Outputs Studio", tone: "blue" },
+        { label: "Compiled Deliverables", tone: "softBlue" },
+        { label: "Assumptions-Aware", tone: "orange" },
+      ]}
+      title="Outputs Workspace"
+      description="Compile the project charter, plan summary, value summary, cost summary, assumptions register, and open questions into reusable outputs that are ready for future export."
+      actions={
+        <>
+          <button
+            type="button"
+            onClick={onGoHome}
+            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
+          >
+            Back to Home
+          </button>
 
-            <h2 className="text-3xl font-semibold text-slate-900">
-              Outputs Workspace
-            </h2>
+          <button
+            type="button"
+            onClick={onBackToCost}
+            className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
+          >
+            Back to Assumptions
+          </button>
 
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-700">
-              This tab compiles the project charter, plan summary, value summary,
-              cost summary, and open questions into reusable outputs that are ready
-              for future export.
-            </p>
-          </div>
-
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <button
-              type="button"
-              onClick={onGoHome}
-              className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
-            >
-              Back to Home
-            </button>
-
-            <button
-              type="button"
-              onClick={onBackToCost}
-              className="w-full rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:w-auto"
-            >
-              Back to Cost Estimate
-            </button>
-
-            <button
-              type="button"
-              onClick={handleRefreshOutputs}
-              className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
-            >
-              Refresh Outputs
-            </button>
-          </div>
-        </div>
-      </SectionCard>
-
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-6">
+          <button
+            type="button"
+            onClick={handleRefreshOutputs}
+            className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
+          >
+            Refresh Outputs
+          </button>
+        </>
+      }
+      progress={{
+        percent: readiness.percent,
+        completed: readiness.completed,
+        total: readiness.total,
+        metricLabel: "Deliverable completeness",
+        detail: `${readiness.completed} of ${readiness.total} core outputs ready`,
+        secondaryLabel: "Output package",
+        secondaryText:
+          "The final output package includes the charter, project plan, value summary, cost summary, assumptions register, and open questions.",
+      }}
+      left={
+        <>
           <SectionCard
             title="Output readiness"
-            subtitle="This shows how complete the current deliverables are based on the work completed across the tool."
+            subtitle="This shows how complete the current deliverables are based on work completed across the tool."
           >
-            <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-              <p className="text-sm font-semibold text-orange-700">
-                Deliverable completeness
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">
-                {readiness.percent}%
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                {readiness.completed} of {readiness.total} core outputs ready
-              </p>
-            </div>
-
-            <div className="mt-4 space-y-3">
+            <div className="space-y-3">
               {readiness.checks.map((check) => (
                 <div
                   key={check.label}
@@ -207,6 +196,19 @@ export default function OutputsWorkspace({
                 type="button"
                 onClick={() =>
                   copyText(
+                    outputs.assumptionsRegister,
+                    "Assumptions Register Copied"
+                  )
+                }
+                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-sky-50"
+              >
+                Copy Assumptions Register
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  copyText(
                     outputs.openQuestionsAndAssumptions,
                     "Open Questions Copied"
                   )
@@ -237,50 +239,35 @@ export default function OutputsWorkspace({
 
           <SectionCard
             title="Planned export actions"
-            subtitle="These are placeholders for the future document download feature."
+            subtitle="These are placeholders for future downloadable document generation."
           >
-            <div className="space-y-3">
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-4">
-                <p className="text-sm font-semibold text-slate-900">
-                  Download Charter
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Planned DOCX / PDF export of the project charter.
-                </p>
-              </div>
+            <div className="grid gap-4">
+              <OutputSummaryCard
+                title="Download Charter"
+                value="Planned DOCX / PDF export of the project charter."
+              />
 
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-4">
-                <p className="text-sm font-semibold text-slate-900">
-                  Download Value Summary
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Planned DOCX / PDF export of the value estimate summary.
-                </p>
-              </div>
+              <OutputSummaryCard
+                title="Download Value Summary"
+                value="Planned DOCX / PDF export of the value estimate summary."
+              />
 
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-4">
-                <p className="text-sm font-semibold text-slate-900">
-                  Download Project Plan
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Planned DOCX / PDF export of the plan summary.
-                </p>
-              </div>
+              <OutputSummaryCard
+                title="Download Project Plan"
+                value="Planned DOCX / PDF export of the plan summary."
+              />
 
-              <div className="rounded-2xl border border-orange-200 bg-orange-50 px-4 py-4">
-                <p className="text-sm font-semibold text-orange-700">
-                  Next build step
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                  Wire these outputs into actual DOCX / PDF generation and connect
-                  them to the 3 save slots.
-                </p>
-              </div>
+              <OutputSummaryCard
+                title="Download Assumptions Register"
+                value="Planned DOCX / PDF export of the assumptions register and open questions."
+                accent="orange"
+              />
             </div>
           </SectionCard>
-        </div>
-
-        <div className="space-y-6">
+        </>
+      }
+      right={
+        <>
           <OutputPreviewCard
             title="Project Charter"
             value={outputs.charterText}
@@ -313,6 +300,16 @@ export default function OutputsWorkspace({
           />
 
           <OutputPreviewCard
+            title="Assumptions Register"
+            value={outputs.assumptionsRegister}
+            onCopy={() =>
+              copyText(outputs.assumptionsRegister, "Assumptions Copied")
+            }
+            copyLabel="Copy Assumptions"
+            accent="orange"
+          />
+
+          <OutputPreviewCard
             title="Open Questions & Assumptions"
             value={outputs.openQuestionsAndAssumptions}
             onCopy={() =>
@@ -333,8 +330,8 @@ export default function OutputsWorkspace({
             copyLabel="Copy Full Pack"
             accent="orange"
           />
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }
