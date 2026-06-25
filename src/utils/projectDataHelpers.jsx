@@ -1,15 +1,5 @@
 import { createDefaultAssumptionsState } from "./assumptionsHelpers";
-
-function isPlainObject(value) {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-export function deepMerge(defaultValue, savedValue) {
-  if (Array.isArray(defaultValue)) {
-    return Array.isArray(savedValue) ? savedValue : defaultValue;
-  }
-
-  if (isPlainObject(defaultValue)) {
+import)) {import { createDefaultBusinessCaseState } from "./calculationHelpers";
     const result = { ...defaultValue };
     const source = isPlainObject(savedValue) ? savedValue : {};
 
@@ -24,7 +14,9 @@ export function deepMerge(defaultValue, savedValue) {
     return result;
   }
 
-  return savedValue !== undefined && savedValue !== null ? savedValue : defaultValue;
+  return savedValue !== undefined && savedValue !== null
+    ? savedValue
+    : defaultValue;
 }
 
 export function createInitialProjectData() {
@@ -154,6 +146,7 @@ export function createInitialProjectData() {
       assumptionsConfidenceNotes: "",
     },
     assumptions: createDefaultAssumptionsState(),
+    businessCase: createDefaultBusinessCaseState(),
   };
 }
 
@@ -189,3 +182,13 @@ export function hasAnyMeaningfulData(value) {
 export function getProjectTitle(projectData) {
   return projectData?.projectBasics?.title?.trim() || "Untitled Project";
 }
+
+function isPlainObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+export function deepMerge(defaultValue, savedValue) {
+  if (Array.isArray(defaultValue)) {
+    return Array.isArray(savedValue) ? savedValue : defaultValue;
+  }
+
