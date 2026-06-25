@@ -1,224 +1,6 @@
-import React, { useMemo } from "react";
-import SectionCard from <FieldLabel label="Integration Cost" />import SectionCard from "../common/SectionCard";
-              <TextInput
-                value={businessCase.costInputs.integrationCost}
-                onChange={(e) =>
-                  updateCostInput("integrationCost", e.target.value)
-                }
-                placeholder="Example: 20000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Support / Launch Cost" />
-              <TextInput
-                value={businessCase.costInputs.supportCost}
-                onChange={(e) => updateCostInput("supportCost", e.target.value)}
-                placeholder="Example: 5000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Recurring Software Cost" />
-              <TextInput
-                value={businessCase.costInputs.recurringSoftwareCost}
-                onChange={(e) =>
-                  updateCostInput("recurringSoftwareCost", e.target.value)
-                }
-                placeholder="Example: 60000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Recurring Support Cost" />
-              <TextInput
-                value={businessCase.costInputs.recurringSupportCost}
-                onChange={(e) =>
-                  updateCostInput("recurringSupportCost", e.target.value)
-                }
-                placeholder="Example: 10000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel
-                label="Contingency Percent"
-                helper="Use a whole number. Example: 15"
-              />
-              <TextInput
-                value={businessCase.costInputs.contingencyPercent}
-                onChange={(e) =>
-                  updateCostInput("contingencyPercent", e.target.value)
-                }
-                placeholder="Example: 15"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <FieldLabel label="Cost Notes" />
-              <TextArea
-                value={businessCase.costInputs.notes}
-                onChange={(e) => updateCostInput("notes", e.target.value)}
-                placeholder="Add notes about cost assumptions, confidence, or known gaps."
-                rows={3}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">
-            Scenario Factors
-          </h3>
-          <p className="mt-1 text-sm text-slate-600">
-            Adjust benefit and cost multipliers for low, expected, and high cases.
-          </p>
-
-          <div className="mt-4 grid gap-4 lg:grid-cols-3">
-            {summary.scenarios.map((scenario) => (
-              <div
-                key={scenario.key}
-                className="rounded-3xl border border-sky-100 bg-sky-50/60 p-4"
-              >
-                <h4 className="text-sm font-semibold text-slate-900">
-                  {scenario.label} Scenario
-                </h4>
-
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <FieldLabel label="Benefit Factor" />
-                    <TextInput
-                      value={businessCase.scenarios[scenario.key].benefitFactor}
-                      onChange={(e) =>
-                        updateScenario(
-                          scenario.key,
-                          "benefitFactor",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Example: 1.00"
-                    />
-                  </div>
-
-                  <div>
-                    <FieldLabel label="Cost Factor" />
-                    <TextInput
-                      value={businessCase.scenarios[scenario.key].costFactor}
-                      onChange={(e) =>
-                        updateScenario(
-                          scenario.key,
-                          "costFactor",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Example: 1.00"
-                    />
-                  </div>
-
-                  <div>
-                    <FieldLabel label="Notes" />
-                    <TextArea
-                      value={businessCase.scenarios[scenario.key].notes}
-                      onChange={(e) =>
-                        updateScenario(scenario.key, "notes", e.target.value)
-                      }
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">
-            Scenario Summary
-          </h3>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <OutputSummaryCard
-              title="Base Annual Labor Savings"
-              value={formatCurrency(summary.baseValue.laborSavings)}
-              accent="orange"
-            />
-            <OutputSummaryCard
-              title="Base Annual Value"
-              value={formatCurrency(summary.baseValue.totalAnnualValue)}
-              accent="orange"
-            />
-            <OutputSummaryCard
-              title="Base Year 1 Cost"
-              value={formatCurrency(summary.baseCost.yearOneCost)}
-            />
-            <OutputSummaryCard
-              title="Recurring Annual Cost"
-              value={formatCurrency(summary.baseCost.recurringAnnualCost)}
-            />
-            <OutputSummaryCard
-              title="Contingency"
-              value={formatCurrency(summary.baseCost.contingency)}
-            />
-          </div>
-
-          <div className="mt-4 grid gap-4 lg:grid-cols-3">
-            {summary.scenarios.map((scenario) => (
-              <div
-                key={scenario.key}
-                className={[
-                  "rounded-3xl border p-5",
-                  scenario.key === "expected"
-                    ? "border-orange-200 bg-orange-50"
-                    : "border-sky-100 bg-sky-50/60",
-                ].join(" ")}
-              >
-                <h4 className="text-base font-semibold text-slate-900">
-                  {scenario.label}
-                </h4>
-
-                <div className="mt-3 space-y-2 text-sm text-slate-700">
-                  <p>
-                    Annual Benefit:{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(scenario.annualBenefit)}
-                    </span>
-                  </p>
-                  <p>
-                    Year 1 Cost:{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(scenario.yearOneCost)}
-                    </span>
-                  </p>
-                  <p>
-                    Year 1 Net Value:{" "}
-                    <span className="font-semibold">
-                      {formatCurrency(scenario.yearOneNetValue)}
-                    </span>
-                  </p>
-                  <p>
-                    Payback:{" "}
-                    <span className="font-semibold">
-                      {scenario.paybackYears === null
-                        ? "N/A"
-                        : `${formatNumber(scenario.paybackYears)} years`}
-                    </span>
-                  </p>
-                </div>
-
-                <p className="mt-3 text-sm leading-6 text-slate-600">
-                  {scenario.notes}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </SectionCard>
-  );
-}
-
 import OutputSummaryCard from "./OutputSummaryCard";
-import {
+import React, { useMemo } from "react";
+import Sectionimport {import SectionCard from "../common/SectionCard";
   calculateScenarioSummary,
   ensureBusinessCaseState,
   formatCurrency,
@@ -480,3 +262,224 @@ export default function BusinessCaseCalculatorSection({
             </div>
 
             <div>
+              <FieldLabel label="Integration Cost" />
+              <TextInput
+                value={businessCase.costInputs.integrationCost}
+                onChange={(e) =>
+                  updateCostInput("integrationCost", e.target.value)
+                }
+                placeholder="Example: 20000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Support / Launch Cost" />
+              <TextInput
+                value={businessCase.costInputs.supportCost}
+                onChange={(e) => updateCostInput("supportCost", e.target.value)}
+                placeholder="Example: 5000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Recurring Software Cost" />
+              <TextInput
+                value={businessCase.costInputs.recurringSoftwareCost}
+                onChange={(e) =>
+                  updateCostInput("recurringSoftwareCost", e.target.value)
+                }
+                placeholder="Example: 60000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Recurring Support Cost" />
+              <TextInput
+                value={businessCase.costInputs.recurringSupportCost}
+                onChange={(e) =>
+                  updateCostInput("recurringSupportCost", e.target.value)
+                }
+                placeholder="Example: 10000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel
+                label="Contingency Percent"
+                helper="Use a whole number. Example: 15"
+              />
+              <TextInput
+                value={businessCase.costInputs.contingencyPercent}
+                onChange={(e) =>
+                  updateCostInput("contingencyPercent", e.target.value)
+                }
+                placeholder="Example: 15"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <FieldLabel label="Cost Notes" />
+              <TextArea
+                value={businessCase.costInputs.notes}
+                onChange={(e) => updateCostInput("notes", e.target.value)}
+                placeholder="Add notes about cost assumptions, confidence, or known gaps."
+                rows={3}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">
+            Scenario Factors
+          </h3>
+          <p className="mt-1 text-sm text-slate-600">
+            Adjust benefit and cost multipliers for low, expected, and high cases.
+          </p>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-3">
+            {summary.scenarios.map((scenario) => (
+              <div
+                key={scenario.key}
+                className="rounded-3xl border border-sky-100 bg-sky-50/60 p-4"
+              >
+                <h4 className="text-sm font-semibold text-slate-900">
+                  {scenario.label} Scenario
+                </h4>
+
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <FieldLabel label="Benefit Factor" />
+                    <TextInput
+                      value={businessCase.scenarios[scenario.key].benefitFactor}
+                      onChange={(e) =>
+                        updateScenario(
+                          scenario.key,
+                          "benefitFactor",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Example: 1.00"
+                    />
+                  </div>
+
+                  <div>
+                    <FieldLabel label="Cost Factor" />
+                    <TextInput
+                      value={businessCase.scenarios[scenario.key].costFactor}
+                      onChange={(e) =>
+                        updateScenario(
+                          scenario.key,
+                          "costFactor",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Example: 1.00"
+                    />
+                  </div>
+
+                  <div>
+                    <FieldLabel label="Notes" />
+                    <TextArea
+                      value={businessCase.scenarios[scenario.key].notes}
+                      onChange={(e) =>
+                        updateScenario(scenario.key, "notes", e.target.value)
+                      }
+                      placeholder="Add scenario-specific notes."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">
+            Scenario Summary
+          </h3>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <OutputSummaryCard
+              title="Base Annual Labor Savings"
+              value={formatCurrency(summary.baseValue.laborSavings)}
+              accent="orange"
+            />
+            <OutputSummaryCard
+              title="Base Annual Value"
+              value={formatCurrency(summary.baseValue.totalAnnualValue)}
+              accent="orange"
+            />
+            <OutputSummaryCard
+              title="Base Year 1 Cost"
+              value={formatCurrency(summary.baseCost.yearOneCost)}
+            />
+            <OutputSummaryCard
+              title="Recurring Annual Cost"
+              value={formatCurrency(summary.baseCost.recurringAnnualCost)}
+            />
+            <OutputSummaryCard
+              title="Contingency"
+              value={formatCurrency(summary.baseCost.contingency)}
+            />
+          </div>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-3">
+            {summary.scenarios.map((scenario) => (
+              <div
+                key={scenario.key}
+                className={[
+                  "rounded-3xl border p-5",
+                  scenario.key === "expected"
+                    ? "border-orange-200 bg-orange-50"
+                    : "border-sky-100 bg-sky-50/60",
+                ].join(" ")}
+              >
+                <h4 className="text-base font-semibold text-slate-900">
+                  {scenario.label}
+                </h4>
+
+                <div className="mt-3 space-y-2 text-sm text-slate-700">
+                  <p>
+                    Annual Benefit:{" "}
+                    <span className="font-semibold">
+                      {formatCurrency(scenario.annualBenefit)}
+                    </span>
+                  </p>
+
+                  <p>
+                    Year 1 Cost:{" "}
+                    <span className="font-semibold">
+                      {formatCurrency(scenario.yearOneCost)}
+                    </span>
+                  </p>
+
+                  <p>
+                    Year 1 Net Value:{" "}
+                    <span className="font-semibold">
+                      {formatCurrency(scenario.yearOneNetValue)}
+                    </span>
+                  </p>
+
+                  <p>
+                    Payback:{" "}
+                    <span className="font-semibold">
+                      {scenario.paybackYears === null
+                        ? "N/A"
+                        : `${formatNumber(scenario.paybackYears)} years`}
+                    </span>
+                  </p>
+                </div>
+
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  {scenario.notes}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
