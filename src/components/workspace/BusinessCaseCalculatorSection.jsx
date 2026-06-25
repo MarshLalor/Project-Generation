@@ -1,269 +1,5 @@
 import React, { useMemo } from "react";
-import SectionCard from "../common/SectionCard";
-import OutputSummaryCard from "./OutputSummaryCard";
-import {
-  calculateScenarioSummary,
-  ensureBusinessCaseState,
-  formatCurrency,
-  formatNumber,
-} from "../../utils/calculationHelpers";
-
-function FieldLabel({ label, helper }) {
-  return (
-    <div className="mb-2">
-      <label className="block text-sm font-semibold text-slate-900">
-        {label}
-      </label>
-      {helper ? (
-        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
-      ) : null}
-    </div>
-  );
-}
-
-function TextInput({ value, onChange, placeholder }) {
-  return (
-    <input
-      type="text"
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-    />
-  );
-}
-
-function TextArea({ value, onChange, placeholder, rows = 4 }) {
-  return (
-    <textarea
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      rows={rows}
-      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-    />
-  );
-}
-
-export default function BusinessCaseCalculatorSection({
-  projectData,
-  setProjectData,
-}) {
-  const businessCase = useMemo(
-    () => ensureBusinessCaseState(projectData.businessCase),
-    [projectData.businessCase]
-  );
-
-  const summary = useMemo(
-    () => calculateScenarioSummary(businessCase),
-    [businessCase]
-  );
-
-  const updateBusinessCase = (updater) => {
-    setProjectData((prev) => ({
-      ...prev,
-      businessCase: updater(ensureBusinessCaseState(prev.businessCase)),
-    }));
-  };
-
-  const updateValueInput = (field, value) => {
-    updateBusinessCase((prev) => ({
-      ...prev,
-      valueInputs: {
-        ...prev.valueInputs,
-        value,
-      },
-    }));
-  };
-
-  const updateCostInput = (field, value) => {
-    updateBusinessCase((prev) => ({
-      ...prev,
-      costInputs: {
-        ...prev.costInputs,
-        value,
-      },
-    }));
-  };
-
-  const updateScenario = (scenarioKey, field, value) => {
-    updateBusinessCase((prev) => ({
-      ...prev,
-      scenarios: {
-        ...prev.scenarios,
-        {
-          ...prev.scenarios[scenarioKey],
-          value,
-        },
-      },
-    }));
-  };
-
-  return (
-    <SectionCard
-      title="Scenario Calculator"
-      subtitle="Use lightweight inputs to create low, expected, and high business case scenarios. This is an early estimate, not a final financial model."
-    >
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">
-            Value Inputs
-          </h3>
-          <p className="mt-1 text-sm text-slate-600">
-            These inputs estimate annual benefit potential.
-          </p>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-              <FieldLabel
-                label="Annual Saved Hours"
-                helper="Total estimated hours saved per year."
-              />
-              <TextInput
-                value={businessCase.valueInputs.annualSavedHours}
-                onChange={(e) =>
-                  updateValueInput("annualSavedHours", e.target.value)
-                }
-                placeholder="Example: 1200"
-              />
-            </div>
-
-            <div>
-              <FieldLabel
-                label="Weighted Hourly Rate"
-                helper="Blended or fully loaded hourly rate."
-              />
-              <TextInput
-                value={businessCase.valueInputs.weightedHourlyRate}
-                onChange={(e) =>
-                  updateValueInput("weightedHourlyRate", e.target.value)
-                }
-                placeholder="Example: 65"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Rework Savings" />
-              <TextInput
-                value={businessCase.valueInputs.reworkSavings}
-                onChange={(e) =>
-                  updateValueInput("reworkSavings", e.target.value)
-                }
-                placeholder="Example: 25000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Cycle-Time Savings" />
-              <TextInput
-                value={businessCase.valueInputs.cycleTimeSavings}
-                onChange={(e) =>
-                  updateValueInput("cycleTimeSavings", e.target.value)
-                }
-                placeholder="Example: 15000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Revenue Uplift" />
-              <TextInput
-                value={businessCase.valueInputs.revenueUplift}
-                onChange={(e) =>
-                  updateValueInput("revenueUplift", e.target.value)
-                }
-                placeholder="Example: 50000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Risk Avoidance" />
-              <TextInput
-                value={businessCase.valueInputs.riskAvoidance}
-                onChange={(e) =>
-                  updateValueInput("riskAvoidance", e.target.value)
-                }
-                placeholder="Example: 10000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Capacity Value" />
-              <TextInput
-                value={businessCase.valueInputs.capacityValue}
-                onChange={(e) =>
-                  updateValueInput("capacityValue", e.target.value)
-                }
-                placeholder="Example: 30000"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <FieldLabel label="Value Notes" />
-              <TextArea
-                value={businessCase.valueInputs.notes}
-                onChange={(e) => updateValueInput("notes", e.target.value)}
-                placeholder="Add notes about how value inputs were estimated."
-                rows={3}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">
-            Cost Inputs
-          </h3>
-          <p className="mt-1 text-sm text-slate-600">
-            These inputs estimate Year 1 and recurring annual cost.
-          </p>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-              <FieldLabel label="Software / License Cost" />
-              <TextInput
-                value={businessCase.costInputs.softwareCost}
-                onChange={(e) =>
-                  updateCostInput("softwareCost", e.target.value)
-                }
-                placeholder="Example: 60000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Implementation Cost" />
-              <TextInput
-                value={businessCase.costInputs.implementationCost}
-                onChange={(e) =>
-                  updateCostInput("implementationCost", e.target.value)
-                }
-                placeholder="Example: 45000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Internal Labor Cost" />
-              <TextInput
-                value={businessCase.costInputs.internalLaborCost}
-                onChange={(e) =>
-                  updateCostInput("internalLaborCost", e.target.value)
-                }
-                placeholder="Example: 25000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Training Cost" />
-              <TextInput
-                value={businessCase.costInputs.trainingCost}
-                onChange={(e) =>
-                  updateCostInput("trainingCost", e.target.value)
-                }
-                placeholder="Example: 10000"
-              />
-            </div>
-
-            <div>
-              <FieldLabel label="Integration Cost" />
+import SectionCard from <FieldLabel label="Integration Cost" />import SectionCard from "../common/SectionCard";
               <TextInput
                 value={businessCase.costInputs.integrationCost}
                 onChange={(e) =>
@@ -480,3 +216,267 @@ export default function BusinessCaseCalculatorSection({
     </SectionCard>
   );
 }
+
+import OutputSummaryCard from "./OutputSummaryCard";
+import {
+  calculateScenarioSummary,
+  ensureBusinessCaseState,
+  formatCurrency,
+  formatNumber,
+} from "../../utils/calculationHelpers";
+
+function FieldLabel({ label, helper }) {
+  return (
+    <div className="mb-2">
+      <label className="block text-sm font-semibold text-slate-900">
+        {label}
+      </label>
+      {helper ? (
+        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function TextInput({ value, onChange, placeholder }) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+    />
+  );
+}
+
+function TextArea({ value, onChange, placeholder, rows = 4 }) {
+  return (
+    <textarea
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+    />
+  );
+}
+
+export default function BusinessCaseCalculatorSection({
+  projectData,
+  setProjectData,
+}) {
+  const businessCase = useMemo(
+    () => ensureBusinessCaseState(projectData.businessCase),
+    [projectData.businessCase]
+  );
+
+  const summary = useMemo(
+    () => calculateScenarioSummary(businessCase),
+    [businessCase]
+  );
+
+  const updateBusinessCase = (updater) => {
+    setProjectData((prev) => ({
+      ...prev,
+      businessCase: updater(ensureBusinessCaseState(prev.businessCase)),
+    }));
+  };
+
+  const updateValueInput = (field, value) => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      valueInputs: {
+        ...prev.valueInputs,
+        [field]: value,
+      },
+    }));
+  };
+
+  const updateCostInput = (field, value) => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      costInputs: {
+        ...prev.costInputs,
+        [field]: value,
+      },
+    }));
+  };
+
+  const updateScenario = (scenarioKey, field, value) => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      scenarios: {
+        ...prev.scenarios,
+        [scenarioKey]: {
+          ...prev.scenarios[scenarioKey],
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  return (
+    <SectionCard
+      title="Scenario Calculator"
+      subtitle="Use lightweight inputs to create low, expected, and high business case scenarios. This is an early estimate, not a final financial model."
+    >
+      <div className="space-y-8">
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">
+            Value Inputs
+          </h3>
+          <p className="mt-1 text-sm text-slate-600">
+            These inputs estimate annual benefit potential.
+          </p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <FieldLabel
+                label="Annual Saved Hours"
+                helper="Total estimated hours saved per year."
+              />
+              <TextInput
+                value={businessCase.valueInputs.annualSavedHours}
+                onChange={(e) =>
+                  updateValueInput("annualSavedHours", e.target.value)
+                }
+                placeholder="Example: 1200"
+              />
+            </div>
+
+            <div>
+              <FieldLabel
+                label="Weighted Hourly Rate"
+                helper="Blended or fully loaded hourly rate."
+              />
+              <TextInput
+                value={businessCase.valueInputs.weightedHourlyRate}
+                onChange={(e) =>
+                  updateValueInput("weightedHourlyRate", e.target.value)
+                }
+                placeholder="Example: 65"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Rework Savings" />
+              <TextInput
+                value={businessCase.valueInputs.reworkSavings}
+                onChange={(e) =>
+                  updateValueInput("reworkSavings", e.target.value)
+                }
+                placeholder="Example: 25000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Cycle-Time Savings" />
+              <TextInput
+                value={businessCase.valueInputs.cycleTimeSavings}
+                onChange={(e) =>
+                  updateValueInput("cycleTimeSavings", e.target.value)
+                }
+                placeholder="Example: 15000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Revenue Uplift" />
+              <TextInput
+                value={businessCase.valueInputs.revenueUplift}
+                onChange={(e) =>
+                  updateValueInput("revenueUplift", e.target.value)
+                }
+                placeholder="Example: 50000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Risk Avoidance" />
+              <TextInput
+                value={businessCase.valueInputs.riskAvoidance}
+                onChange={(e) =>
+                  updateValueInput("riskAvoidance", e.target.value)
+                }
+                placeholder="Example: 10000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Capacity Value" />
+              <TextInput
+                value={businessCase.valueInputs.capacityValue}
+                onChange={(e) =>
+                  updateValueInput("capacityValue", e.target.value)
+                }
+                placeholder="Example: 30000"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <FieldLabel label="Value Notes" />
+              <TextArea
+                value={businessCase.valueInputs.notes}
+                onChange={(e) => updateValueInput("notes", e.target.value)}
+                placeholder="Add notes about how value inputs were estimated."
+                rows={3}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">
+            Cost Inputs
+          </h3>
+          <p className="mt-1 text-sm text-slate-600">
+            These inputs estimate Year 1 and recurring annual cost.
+          </p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <FieldLabel label="Software / License Cost" />
+              <TextInput
+                value={businessCase.costInputs.softwareCost}
+                onChange={(e) =>
+                  updateCostInput("softwareCost", e.target.value)
+                }
+                placeholder="Example: 60000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Implementation Cost" />
+              <TextInput
+                value={businessCase.costInputs.implementationCost}
+                onChange={(e) =>
+                  updateCostInput("implementationCost", e.target.value)
+                }
+                placeholder="Example: 45000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Internal Labor Cost" />
+              <TextInput
+                value={businessCase.costInputs.internalLaborCost}
+                onChange={(e) =>
+                  updateCostInput("internalLaborCost", e.target.value)
+                }
+                placeholder="Example: 25000"
+              />
+            </div>
+
+            <div>
+              <FieldLabel label="Training Cost" />
+              <TextInput
+                value={businessCase.costInputs.trainingCost}
+                onChange={(e) =>
+                  updateCostInput("trainingCost", e.target.value)
+                }
+                placeholder="Example: 10000"
+              />
+            </div>
+
+            <div>
