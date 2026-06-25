@@ -1,5 +1,39 @@
+
 export function toNumber(value) {
-  if (value === null || value === undefined) return: "",  if (value === null || value === undefined) return 0;
+  if (value === null || value === undefined) return 0;
+
+  const cleaned = String(value)
+    .replace(/[$,%]/g, "")
+    .replace(/,/g, "")
+    .trim();
+
+  const parsed = Number(cleaned);
+
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function formatCurrency(value) {
+  const number = Number(value) || 0;
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(number);
+}
+
+export function formatNumber(value) {
+  const number = Number(value) || 0;
+
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 1,
+  }).format(number);
+}
+
+export function createDefaultBusinessCaseState() {
+  return {
+    valueInputs: {
+      annualSavedHours: "",
       weightedHourlyRate: "",
       reworkSavings: "",
       cycleTimeSavings: "",
@@ -159,35 +193,3 @@ export function calculateScenarioSummary(businessCase) {
     scenarios,
   };
 }
-
-  const cleaned = String(value)
-    .replace(/[$,%]/g, "")
-    .replace(/,/g, "")
-    .trim();
-
-  const parsed = Number(cleaned);
-
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-export function formatCurrency(value) {
-  const number = Number(value) || 0;
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(number);
-}
-
-export function formatNumber(value) {
-  const number = Number(value) || 0;
-
-  return new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 1,
-  }).format(number);
-}
-
-export function createDefaultBusinessCaseState() {
-  return {
-    valueInputs: {
