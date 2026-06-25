@@ -9,6 +9,8 @@ import {
   parseCostEstimateResponse,
 } from "../../utils/valueCostHelpers";
 import { getCostEstimateCompletion } from "../../utils/workspaceHelpers";
+import BusinessCaseCalculatorSection from "./BusinessCaseCalculatorSection";
+
 
 function FieldLabel({ label, helper }) {
   return (
@@ -242,6 +244,11 @@ export default function CostEstimateWorkspace({
                   onChange={(e) =>
                     updateCostField("costCategories", e.target.value)
                   }
+	<BusinessCaseCalculatorSection
+  	projectData={projectData}
+ 	 setProjectData={setProjectData}
+	/>
+
                   placeholder={`One item per line
 Example: software / license cost
 Example: implementation partner cost

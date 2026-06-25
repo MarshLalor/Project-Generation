@@ -10,6 +10,7 @@ import {
   parseValueEstimateResponse,
 } from "../../utils/valueCostHelpers";
 import { getValueEstimateCompletion } from "../../utils/workspaceHelpers";
+import BusinessCaseCalculatorSection from "./BusinessCaseCalculatorSection";
 
 function FieldLabel({ label, helper }) {
   return (
@@ -215,7 +216,8 @@ export default function ValueEstimateWorkspace({
               />
             </div>
           </SectionCard>
-
+		<BusinessCaseCalculatorSection
+ 
           <SectionCard
             title="Editable value estimate fields"
             subtitle="You can fill these manually or let the AI response populate them."
@@ -231,6 +233,11 @@ export default function ValueEstimateWorkspace({
                   onChange={(e) =>
                     updateValueField("likelyValueDrivers", e.target.value)
                   }
+		<BusinessCaseCalculatorSection
+  		projectData={projectData}
+  		setProjectData={setProjectData}
+		/>
+	
                   placeholder={`One item per line
 Example: labor savings from reduced manual review
 Example: error reduction and rework avoidance`}
