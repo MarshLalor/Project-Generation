@@ -1,16 +1,15 @@
-
 import React, { useMemo, useState } from "react";
 import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
 import PromptPanel from "./PromptPanel";
 import OutputSummaryCard from "./OutputSummaryCard";
+import BusinessCaseCalculatorSection from "./BusinessCaseCalculatorSection";
 import {
   buildValueEstimatePrompt,
   getAssumptionsPreview,
   parseValueEstimateResponse,
 } from "../../utils/valueCostHelpers";
 import { getValueEstimateCompletion } from "../../utils/workspaceHelpers";
-import BusinessCaseCalculatorSection from "./BusinessCaseCalculatorSection";
 
 function FieldLabel({ label, helper }) {
   return (
@@ -115,10 +114,10 @@ export default function ValueEstimateWorkspace({
       badges={[
         { label: "Value Estimate", tone: "blue" },
         { label: "Assumptions-Aware", tone: "softBlue" },
-        { label: "AI Estimation Workflow", tone: "orange" },
+        { label: "Scenario Calculator", tone: "orange" },
       ]}
       title="Value Estimate Workspace"
-      description="Use this tab to identify value drivers, capture known and missing variables, and build a practical high-level benefit estimate tied to project outcomes and shared assumptions."
+      description="Use this tab to identify value drivers, capture known and missing variables, and build a practical high-level benefit estimate tied to project outcomes, shared assumptions, and scenario calculations."
       actions={
         <>
           <button
@@ -154,7 +153,7 @@ export default function ValueEstimateWorkspace({
         detail: `${completion.completed} of ${completion.total} tracked value estimate fields completed`,
         secondaryLabel: "Assumptions-aware value story",
         secondaryText:
-          "This prompt now uses labor rates, effort assumptions, volume assumptions, benchmark assumptions, burden factor, and open questions from the Assumptions workspace.",
+          "This workspace uses labor rates, effort assumptions, volume assumptions, benchmark assumptions, burden factor, open questions, and scenario inputs to support the value story.",
       }}
       left={
         <>
@@ -216,8 +215,12 @@ export default function ValueEstimateWorkspace({
               />
             </div>
           </SectionCard>
-		<BusinessCaseCalculatorSection
- 
+
+          <BusinessCaseCalculatorSection
+            projectData={projectData}
+            setProjectData={setProjectData}
+          />
+
           <SectionCard
             title="Editable value estimate fields"
             subtitle="You can fill these manually or let the AI response populate them."
@@ -233,11 +236,6 @@ export default function ValueEstimateWorkspace({
                   onChange={(e) =>
                     updateValueField("likelyValueDrivers", e.target.value)
                   }
-		<BusinessCaseCalculatorSection
-  		projectData={projectData}
-  		setProjectData={setProjectData}
-		/>
-	
                   placeholder={`One item per line
 Example: labor savings from reduced manual review
 Example: error reduction and rework avoidance`}
@@ -353,7 +351,7 @@ Example: current-state QA effort has not yet been validated by time study`}
       right={
         <PromptPanel
           promptTitle="AI prompt preview"
-          promptSubtitle="Refresh the prompt whenever Project Basics, Charter, Plan Studio, or Assumptions content changes."
+          promptSubtitle="Refresh the prompt whenever Project Basics, Charter, Plan Studio, Assumptions, or Scenario Calculator content changes."
           promptText={livePrompt}
           onRefreshPrompt={handleGeneratePrompt}
           onCopyPrompt={handleCopyPrompt}
@@ -383,7 +381,7 @@ G. Confidence / Assumption Notes`}
           helperSteps={[
             {
               title: "Step 1",
-              body: "Refresh the prompt so it uses the latest charter, plan, and assumptions register.",
+              body: "Refresh the prompt so it uses the latest charter, plan, assumptions register, and scenario calculator inputs.",
             },
             {
               title: "Step 2",
@@ -391,11 +389,11 @@ G. Confidence / Assumption Notes`}
             },
             {
               title: "Step 3",
-              body: "Paste the response back into the tool and parse it into structured estimate fields.",
+              body: "Use the Scenario Calculator to build low, expected, and high value/cost cases.",
             },
             {
               title: "Step 4",
-              body: "Refine the preliminary model and assumptions before moving to the cost estimate.",
+              body: "Paste the AI response back into the tool and parse it into structured value estimate fields.",
             },
           ]}
         />
