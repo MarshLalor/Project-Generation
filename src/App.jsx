@@ -12,161 +12,21 @@ import AssumptionsWorkspace from "./components/workspace/AssumptionsWorkspace";
 import OutputsWorkspace from "./components/workspace/OutputsWorkspace";
 import { topNavTabs, tabGuideCards } from "./data/projectBuilderConfig";
 import {
-  cloneInitialProjectData,
+  createNewProjectForSlot,
   getInitialHydratedState,
   getSlotSummaries,
   loadProjectFromSlot,
   saveProjectToSlot,
   setLastActiveSlot,
 } from "./utils/storageHelpers";
-import { createDefaultAssumptionsState } from "./utils/assumptionsHelpers";
-
-const initialProjectData = {
-  projectBasics: {
-    title: "",
-    businessProblem: "",
-    projectObjective: "",
-    expectedBusinessOutcome: "",
-    deliveryApproach: "hybrid",
-    sponsor: "",
-    businessOwner: "",
-    projectManager: "",
-    department: "",
-    targetTimeline: "",
-    estimatedBudgetRange: "",
-    scopeIn: "",
-    scopeOut: "",
-    keyStakeholders: "",
-    successCriteria: "",
-    keyAssumptions: "",
-    keyConstraints: "",
-    risksDependencies: "",
-    initialValueHypothesis: "",
-  },
-  ideation: {
-    ideaType: "",
-    spark: "",
-    businessContext: "",
-    currentPain: "",
-    knownGoal: "",
-    promptText: "",
-    aiResponse: "",
-    parsedSections: {
-      problemStatement: "",
-      projectObjective: "",
-      desiredOutcomes: "",
-      potentialApproaches: "",
-      recommendedDirection: "",
-      scopeIn: "",
-      scopeOut: "",
-      stakeholders: "",
-      assumptions: "",
-      risksConstraints: "",
-      valueDrivers: "",
-      openQuestions: "",
-    },
-  },
-  charter: {
-    backgroundBusinessNeed: "",
-    problemStatement: "",
-    projectObjectives: "",
-    scopeSummary: "",
-    keyStakeholders: "",
-    timelineMilestones: "",
-    assumptions: "",
-    constraints: "",
-    risksDependencies: "",
-    successCriteria: "",
-    initialValueHypothesis: "",
-    recommendedNextSteps: "",
-    charterText: "",
-    aiPrompt: "",
-    aiResponse: "",
-  },
-  planStudio: {
-    activeSection: "scope",
-    sections: {
-      scope: {
-        promptText: "",
-        aiResponse: "",
-        draftContent: "",
-        missingInformation: "",
-        questionsForUser: "",
-        suggestedNextSteps: "",
-        keyAssumptions: "",
-      },
-      schedule: {
-        promptText: "",
-        aiResponse: "",
-        draftContent: "",
-        missingInformation: "",
-        questionsForUser: "",
-        suggestedNextSteps: "",
-        keyAssumptions: "",
-      },
-      risk: {
-        promptText: "",
-        aiResponse: "",
-        draftContent: "",
-        missingInformation: "",
-        questionsForUser: "",
-        suggestedNextSteps: "",
-        keyAssumptions: "",
-      },
-      communications: {
-        promptText: "",
-        aiResponse: "",
-        draftContent: "",
-        missingInformation: "",
-        questionsForUser: "",
-        suggestedNextSteps: "",
-        keyAssumptions: "",
-      },
-    },
-  },
-  valueEstimate: {
-    promptText: "",
-    aiResponse: "",
-    likelyValueDrivers: "",
-    knownInputs: "",
-    missingInputs: "",
-    followUpQuestions: "",
-    estimationMethods: "",
-    preliminaryValueModel: "",
-    confidenceNotes: "",
-  },
-  costEstimate: {
-    promptText: "",
-    aiResponse: "",
-    costCategories: "",
-    knownInputs: "",
-    missingInputs: "",
-    followUpQuestions: "",
-    estimationMethods: "",
-    preliminaryCostSummary: "",
-    assumptionsConfidenceNotes: "",
-  },
-  assumptions: createDefaultAssumptionsState(),
-};
-
-function hasAnyMeaningfulData(value) {
-  if (typeof value === "string") {
-    return value.trim().length > 0;
-  }
-
-  if (Array.isArray(value)) {
-    return value.some((item) => hasAnyMeaningfulData(item));
-  }
-
-  if (value && typeof value === "object") {
-    return Object.values(value).some((item) => hasAnyMeaningfulData(item));
-  }
-
-  return false;
-}
+import {
+  createBlankProjectData,
+  hasAnyMeaningfulData,
+  normalizeProjectData,
+} from "./utils/projectDataHelpers";
 
 export default function App() {
-  const hydrated = getInitialHydratedState(initialProjectData);
+  const hydrated = useMemo(() => getInitialHydratedState(), []);
 
   const [activeTab, setActiveTab] = useState(hydrated.activeTab);
   const [projectData, setProjectData] = useState(hydrated.projectData);
@@ -193,7 +53,8 @@ export default function App() {
       return;
     }
 
-    saveProjectToSlot(activeSlot, projectData, activeTab);
+    const normalized = normalizeProjectData(projectData);
+    saveProjectToSlot(activeSlot, normalized, activeTab);
     setSlotSummaries(getSlotSummaries());
   }, [projectData, activeTab, activeSlot]);
 
@@ -203,11 +64,15 @@ export default function App() {
   };
 
   const handleStartNew = () => {
+    setProjectData(createBlankProjectData());
     setActiveTab("ideation");
+    flashStatus(`New project started in Slot ${activeSlot}`);
   };
 
   const handleSave = () => {
-    saveProjectToSlot(activeSlot, projectData, activeTab);
+    const normalized = normalizeProjectData(projectData);
+    saveProjectToSlot(activeSlot, normalized, activeTab);
+    setProjectData(normalized);
     setSlotSummaries(getSlotSummaries());
     flashStatus(`Saved to Slot ${activeSlot}`);
   };
@@ -218,16 +83,18 @@ export default function App() {
     setActiveSlot(slotId);
 
     if (slotData?.projectData) {
-      setProjectData(slotData.projectData);
+      const normalized = normalizeProjectData(slotData.projectData);
+      setProjectData(normalized);
       setActiveTab(slotData.activeTab || "home");
       setSlotSummaries(getSlotSummaries());
       flashStatus(`Loaded Slot ${slotId}`);
       return;
     }
 
-    setProjectData(cloneInitialProjectData(initialProjectData));
-    setActiveTab("home");
-    setSlotSummaries(getSlotSummaries());
+    const next = createNewProjectForSlot(slotId);
+    setProjectData(next.projectData);
+    setActiveTab(next.activeTab);
+    setSlotSummaries(next.slotSummaries);
     flashStatus(`Started new workspace in Slot ${slotId}`);
   };
 
@@ -295,6 +162,7 @@ export default function App() {
             onGoHome={() => setActiveTab("home")}
             onBackToValue={() => setActiveTab("value-estimate")}
             onContinueToOutputs={() => setActiveTab("assumptions")}
+            onContinueToAssumptions={() => setActiveTab("assumptions")}
           />
         ) : activeTab === "assumptions" ? (
           <AssumptionsWorkspace
