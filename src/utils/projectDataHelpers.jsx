@@ -1,5 +1,16 @@
 import { createDefaultAssumptionsState } from "./assumptionsHelpers";
-import)) {import { createDefaultBusinessCaseState } from "./calculationHelpers";
+import { createDefaultBusinessCaseState } from "./calculationHelpers";
+
+function isPlainObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+export function deepMerge(defaultValue, savedValue) {
+  if (Array.isArray(defaultValue)) {
+    return Array.isArray(savedValue) ? savedValue : defaultValue;
+  }
+
+  if (isPlainObject(defaultValue)) {
     const result = { ...defaultValue };
     const source = isPlainObject(savedValue) ? savedValue : {};
 
@@ -182,13 +193,3 @@ export function hasAnyMeaningfulData(value) {
 export function getProjectTitle(projectData) {
   return projectData?.projectBasics?.title?.trim() || "Untitled Project";
 }
-
-function isPlainObject(value) {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-export function deepMerge(defaultValue, savedValue) {
-  if (Array.isArray(defaultValue)) {
-    return Array.isArray(savedValue) ? savedValue : defaultValue;
-  }
-
