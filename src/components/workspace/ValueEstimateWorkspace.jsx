@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from "react";
 import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
@@ -5,6 +6,7 @@ import PromptPanel from "./PromptPanel";
 import OutputSummaryCard from "./OutputSummaryCard";
 import {
   buildValueEstimatePrompt,
+  getAssumptionsPreview,
   parseValueEstimateResponse,
 } from "../../utils/valueCostHelpers";
 import { getValueEstimateCompletion } from "../../utils/workspaceHelpers";
@@ -45,6 +47,11 @@ export default function ValueEstimateWorkspace({
 
   const basics = projectData.projectBasics;
   const valueEstimate = projectData.valueEstimate;
+
+  const assumptionsPreview = useMemo(
+    () => getAssumptionsPreview(projectData),
+    [projectData]
+  );
 
   const completion = useMemo(
     () => getValueEstimateCompletion(projectData),
@@ -102,27 +109,15 @@ export default function ValueEstimateWorkspace({
     }));
   };
 
-  const handleApplyParsed = () => {
-    const parsed = parseValueEstimateResponse(valueEstimate.aiResponse);
-
-    setProjectData((prev) => ({
-      ...prev,
-      valueEstimate: {
-        ...prev.valueEstimate,
-        ...parsed,
-      },
-    }));
-  };
-
   return (
     <BuilderLayout
       badges={[
         { label: "Value Estimate", tone: "blue" },
-        { label: "Outcome Focused", tone: "softBlue" },
+        { label: "Assumptions-Aware", tone: "softBlue" },
         { label: "AI Estimation Workflow", tone: "orange" },
       ]}
       title="Value Estimate Workspace"
-      description="Use this tab to identify value drivers, capture known and missing variables, and build a practical high-level benefit estimate tied to your project outcomes."
+      description="Use this tab to identify value drivers, capture known and missing variables, and build a practical high-level benefit estimate tied to project outcomes and shared assumptions."
       actions={
         <>
           <button
@@ -156,9 +151,9 @@ export default function ValueEstimateWorkspace({
         total: completion.total,
         metricLabel: "Value estimate completeness",
         detail: `${completion.completed} of ${completion.total} tracked value estimate fields completed`,
-        secondaryLabel: "Why this matters",
+        secondaryLabel: "Assumptions-aware value story",
         secondaryText:
-          "This section turns outcomes, assumptions, and known variables into a usable value story for sponsor or executive review.",
+          "This prompt now uses labor rates, effort assumptions, volume assumptions, benchmark assumptions, burden factor, and open questions from the Assumptions workspace.",
       }}
       left={
         <>
@@ -188,6 +183,40 @@ export default function ValueEstimateWorkspace({
           </SectionCard>
 
           <SectionCard
+            title="Assumptions feeding this value estimate"
+            subtitle="These assumptions are automatically included in the AI prompt."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OutputSummaryCard
+                title="Labor Rates"
+                value={assumptionsPreview.laborRates}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Effort Assumptions"
+                value={assumptionsPreview.effortAssumptions}
+              />
+              <OutputSummaryCard
+                title="Volume Assumptions"
+                value={assumptionsPreview.volumeAssumptions}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Benchmark Assumptions"
+                value={assumptionsPreview.benchmarkAssumptions}
+              />
+              <OutputSummaryCard
+                title="Burden Factor"
+                value={assumptionsPreview.burdenFactor}
+              />
+              <OutputSummaryCard
+                title="Confidence Level"
+                value={assumptionsPreview.confidenceLevel}
+              />
+            </div>
+          </SectionCard>
+
+          <SectionCard
             title="Editable value estimate fields"
             subtitle="You can fill these manually or let the AI response populate them."
           >
@@ -212,7 +241,7 @@ Example: error reduction and rework avoidance`}
               <div>
                 <FieldLabel
                   label="Known Inputs"
-                  helper="Capture variables already known today."
+                  helper="Capture variables already known today, including assumptions that will drive the estimate."
                 />
                 <TextArea
                   value={valueEstimate.knownInputs}
@@ -221,7 +250,7 @@ Example: error reduction and rework avoidance`}
                   }
                   placeholder={`One item per line
 Example: approx. 20,000 ads reviewed per month
-Example: Sr. managers spend 3 hours per week on final review`}
+Example: fully loaded hourly rate assumptions exist for key roles`}
                   rows={5}
                 />
               </div>
@@ -237,8 +266,8 @@ Example: Sr. managers spend 3 hours per week on final review`}
                     updateValueField("missingInputs", e.target.value)
                   }
                   placeholder={`One item per line
-Example: fully loaded hourly rates by role
-Example: current error/rework rate`}
+Example: current error/rework rate
+Example: % review effort reducible by automation`}
                   rows={5}
                 />
               </div>
@@ -271,8 +300,8 @@ Example: What % of review effort could be reduced?`}
                     updateValueField("estimationMethods", e.target.value)
                   }
                   placeholder={`One item per line
-Example: use industry average salaries if internal data is unavailable
-Example: estimate fully loaded hourly rate from salary × burden factor`}
+Example: use assumptions register labor rates
+Example: estimate annual savings using volume × hours saved × fully loaded rate`}
                   rows={5}
                 />
               </div>
@@ -288,7 +317,7 @@ Example: estimate fully loaded hourly rate from salary × burden factor`}
                     updateValueField("preliminaryValueModel", e.target.value)
                   }
                   placeholder={`Example:
-Annual labor savings = review volume × hours saved × hourly labor rate
+Annual labor savings = review volume × hours saved × fully loaded hourly rate
 Annual rework savings = error volume reduction × rework hours × weighted labor rate`}
                   rows={7}
                 />
@@ -305,50 +334,11 @@ Annual rework savings = error volume reduction × rework hours × weighted labor
                     updateValueField("confidenceNotes", e.target.value)
                   }
                   placeholder={`One item per line
-Example: labor rates are still benchmark-based
+Example: labor rates are assumptions-register based
 Example: current-state QA effort has not yet been validated by time study`}
                   rows={5}
                 />
               </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard
-            title="Parsed value estimate preview"
-            subtitle="These are the reusable structured outputs after parsing an AI response."
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <OutputSummaryCard
-                title="Likely Value Drivers"
-                value={valueEstimate.likelyValueDrivers}
-                accent="orange"
-              />
-              <OutputSummaryCard
-                title="Known Inputs"
-                value={valueEstimate.knownInputs}
-              />
-              <OutputSummaryCard
-                title="Missing Inputs"
-                value={valueEstimate.missingInputs}
-              />
-              <OutputSummaryCard
-                title="Follow-Up Questions"
-                value={valueEstimate.followUpQuestions}
-                accent="orange"
-              />
-              <OutputSummaryCard
-                title="Estimation Methods"
-                value={valueEstimate.estimationMethods}
-              />
-              <OutputSummaryCard
-                title="Preliminary Value Model"
-                value={valueEstimate.preliminaryValueModel}
-                accent="orange"
-              />
-              <OutputSummaryCard
-                title="Confidence Notes"
-                value={valueEstimate.confidenceNotes}
-              />
             </div>
           </SectionCard>
         </>
@@ -356,7 +346,7 @@ Example: current-state QA effort has not yet been validated by time study`}
       right={
         <PromptPanel
           promptTitle="AI prompt preview"
-          promptSubtitle="Refresh the prompt whenever Project Basics, Charter, or Plan Studio content changes."
+          promptSubtitle="Refresh the prompt whenever Project Basics, Charter, Plan Studio, or Assumptions content changes."
           promptText={livePrompt}
           onRefreshPrompt={handleGeneratePrompt}
           onCopyPrompt={handleCopyPrompt}
@@ -379,14 +369,14 @@ F. Preliminary High-Level Value Model
 G. Confidence / Assumption Notes`}
           responseRows={18}
           onParseResponse={handleParseResponse}
-          onApplyResponse={handleApplyParsed}
+          onApplyResponse={handleParseResponse}
           parseLabel="Parse AI Response"
           applyLabel="Apply to Value Estimate"
           helperTitle="How to use Value Estimate"
           helperSteps={[
             {
               title: "Step 1",
-              body: "Refresh the prompt so it uses the latest charter and planning information.",
+              body: "Refresh the prompt so it uses the latest charter, plan, and assumptions register.",
             },
             {
               title: "Step 2",

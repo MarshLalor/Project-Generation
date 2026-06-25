@@ -5,6 +5,7 @@ import PromptPanel from "./PromptPanel";
 import OutputSummaryCard from "./OutputSummaryCard";
 import {
   buildCostEstimatePrompt,
+  getAssumptionsPreview,
   parseCostEstimateResponse,
 } from "../../utils/valueCostHelpers";
 import { getCostEstimateCompletion } from "../../utils/workspaceHelpers";
@@ -40,11 +41,17 @@ export default function CostEstimateWorkspace({
   onGoHome,
   onBackToValue,
   onContinueToOutputs,
+  onContinueToAssumptions,
 }) {
   const [copyStatus, setCopyStatus] = useState("idle");
 
   const basics = projectData.projectBasics;
   const costEstimate = projectData.costEstimate;
+
+  const assumptionsPreview = useMemo(
+    () => getAssumptionsPreview(projectData),
+    [projectData]
+  );
 
   const completion = useMemo(
     () => getCostEstimateCompletion(projectData),
@@ -102,27 +109,26 @@ export default function CostEstimateWorkspace({
     }));
   };
 
-  const handleApplyParsed = () => {
-    const parsed = parseCostEstimateResponse(costEstimate.aiResponse);
+  const handleNext = () => {
+    if (onContinueToAssumptions) {
+      onContinueToAssumptions();
+      return;
+    }
 
-    setProjectData((prev) => ({
-      ...prev,
-      costEstimate: {
-        ...prev.costEstimate,
-        ...parsed,
-      },
-    }));
+    if (onContinueToOutputs) {
+      onContinueToOutputs();
+    }
   };
 
   return (
     <BuilderLayout
       badges={[
         { label: "Cost Estimate", tone: "blue" },
-        { label: "Implementation + Ongoing Cost", tone: "softBlue" },
+        { label: "Assumptions-Aware", tone: "softBlue" },
         { label: "AI Estimation Workflow", tone: "orange" },
       ]}
       title="Cost Estimate Workspace"
-      description="Use this tab to create a high-level cost estimate for Year 1 and recurring annual cost, including labor, software, implementation, training, integration, and support assumptions."
+      description="Use this tab to create a high-level cost estimate for Year 1 and recurring annual cost using shared assumptions, labor rates, implementation effort, training, integration, and support assumptions."
       actions={
         <>
           <button
@@ -143,10 +149,10 @@ export default function CostEstimateWorkspace({
 
           <button
             type="button"
-            onClick={onContinueToOutputs}
+            onClick={handleNext}
             className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
           >
-            Go to Outputs
+            Go to Assumptions
           </button>
         </>
       }
@@ -156,9 +162,9 @@ export default function CostEstimateWorkspace({
         total: completion.total,
         metricLabel: "Cost estimate completeness",
         detail: `${completion.completed} of ${completion.total} tracked cost estimate fields completed`,
-        secondaryLabel: "Why this matters",
+        secondaryLabel: "Assumptions-aware cost story",
         secondaryText:
-          "This section gives you the rough investment side of the business case so value and cost can be reviewed together.",
+          "This prompt now uses labor rates, effort assumptions, benchmark assumptions, burden factor, and calculation confidence from the Assumptions workspace.",
       }}
       left={
         <>
@@ -183,6 +189,40 @@ export default function CostEstimateWorkspace({
               <OutputSummaryCard
                 title="Expected Business Outcome"
                 value={basics.expectedBusinessOutcome}
+              />
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            title="Assumptions feeding this cost estimate"
+            subtitle="These assumptions are automatically included in the AI prompt."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OutputSummaryCard
+                title="Labor Rates"
+                value={assumptionsPreview.laborRates}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Effort Assumptions"
+                value={assumptionsPreview.effortAssumptions}
+              />
+              <OutputSummaryCard
+                title="Benchmark Assumptions"
+                value={assumptionsPreview.benchmarkAssumptions}
+              />
+              <OutputSummaryCard
+                title="Burden Factor"
+                value={assumptionsPreview.burdenFactor}
+                accent="orange"
+              />
+              <OutputSummaryCard
+                title="Confidence Level"
+                value={assumptionsPreview.confidenceLevel}
+              />
+              <OutputSummaryCard
+                title="Open Questions"
+                value={assumptionsPreview.openQuestions}
               />
             </div>
           </SectionCard>
@@ -213,7 +253,7 @@ Example: internal labor cost`}
               <div>
                 <FieldLabel
                   label="Known Inputs"
-                  helper="Capture cost information already known today."
+                  helper="Capture cost information already known today, including assumptions that will drive the estimate."
                 />
                 <TextArea
                   value={costEstimate.knownInputs}
@@ -222,7 +262,7 @@ Example: internal labor cost`}
                   }
                   placeholder={`One item per line
 Example: vendor quote estimate available
-Example: 2 PM resources needed part-time for 12 weeks`}
+Example: internal labor assumptions exist in the assumptions register`}
                   rows={5}
                 />
               </div>
@@ -273,7 +313,7 @@ Example: How many internal hours will be needed for implementation?`}
                     updateCostField("estimationMethods", e.target.value)
                   }
                   placeholder={`One item per line
-Example: estimate internal labor using hourly rate assumptions
+Example: estimate internal labor using assumptions-register rates
 Example: use low / expected / high range for vendor implementation`}
                   rows={5}
                 />
@@ -310,50 +350,11 @@ Recurring annual cost = ongoing license + support + maintenance`}
                     )
                   }
                   placeholder={`One item per line
-Example: internal labor rates are approximated
+Example: internal labor rates are assumptions-register based
 Example: vendor integration scope still needs validation`}
                   rows={5}
                 />
               </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard
-            title="Parsed cost estimate preview"
-            subtitle="These are the reusable structured outputs after parsing an AI response."
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <OutputSummaryCard
-                title="Cost Categories"
-                value={costEstimate.costCategories}
-                accent="orange"
-              />
-              <OutputSummaryCard
-                title="Known Inputs"
-                value={costEstimate.knownInputs}
-              />
-              <OutputSummaryCard
-                title="Missing Inputs"
-                value={costEstimate.missingInputs}
-              />
-              <OutputSummaryCard
-                title="Follow-Up Questions"
-                value={costEstimate.followUpQuestions}
-                accent="orange"
-              />
-              <OutputSummaryCard
-                title="Estimation Methods"
-                value={costEstimate.estimationMethods}
-              />
-              <OutputSummaryCard
-                title="Preliminary Cost Summary"
-                value={costEstimate.preliminaryCostSummary}
-                accent="orange"
-              />
-              <OutputSummaryCard
-                title="Assumptions / Confidence Notes"
-                value={costEstimate.assumptionsConfidenceNotes}
-              />
             </div>
           </SectionCard>
         </>
@@ -361,7 +362,7 @@ Example: vendor integration scope still needs validation`}
       right={
         <PromptPanel
           promptTitle="AI prompt preview"
-          promptSubtitle="Refresh the prompt whenever the project context changes."
+          promptSubtitle="Refresh the prompt whenever Project Basics, Charter, Plan Studio, Value Estimate, or Assumptions content changes."
           promptText={livePrompt}
           onRefreshPrompt={handleGeneratePrompt}
           onCopyPrompt={handleCopyPrompt}
@@ -384,14 +385,14 @@ F. Preliminary Cost Estimate Summary
 G. Assumptions and Confidence Notes`}
           responseRows={18}
           onParseResponse={handleParseResponse}
-          onApplyResponse={handleApplyParsed}
+          onApplyResponse={handleParseResponse}
           parseLabel="Parse AI Response"
           applyLabel="Apply to Cost Estimate"
           helperTitle="How to use Cost Estimate"
           helperSteps={[
             {
               title: "Step 1",
-              body: "Refresh the prompt so it uses the latest charter, plan, and value context.",
+              body: "Refresh the prompt so it uses the latest charter, plan, value context, and assumptions register.",
             },
             {
               title: "Step 2",
@@ -403,7 +404,7 @@ G. Assumptions and Confidence Notes`}
             },
             {
               title: "Step 4",
-              body: "Refine the assumptions, confirm missing inputs, and prepare the estimate for the Outputs tab.",
+              body: "Refine the assumptions, confirm missing inputs, and prepare the estimate for Outputs.",
             },
           ]}
         />
