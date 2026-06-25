@@ -1,5 +1,101 @@
 import React, { useMemo } from "react";
-import SectionCard from "../common/SectionCard      },import SectionCard from "../common/SectionCard";
+import SectionCard from "../common/SectionCard";
+import OutputSummaryCard from "./OutputSummaryCard";
+import {
+  calculateScenarioSummary,
+  ensureBusinessCaseState,
+  formatCurrency,
+  formatNumber,
+} from "../../utils/calculationHelpers";
+
+function FieldLabel({ label, helper }) {
+  return (
+    <div className="mb-2">
+      <label className="block text-sm font-semibold text-slate-900">
+        {label}
+      </label>
+      {helper ? (
+        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function TextInput({ value, onChange, placeholder }) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+    />
+  );
+}
+
+function TextArea({ value, onChange, placeholder, rows = 4 }) {
+  return (
+    <textarea
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+    />
+  );
+}
+
+export default function BusinessCaseCalculatorSection({
+  projectData,
+  setProjectData,
+}) {
+  const businessCase = useMemo(
+    () => ensureBusinessCaseState(projectData.businessCase),
+    [projectData.businessCase]
+  );
+
+  const summary = useMemo(
+    () => calculateScenarioSummary(businessCase),
+    [businessCase]
+  );
+
+  const updateBusinessCase = (updater) => {
+    setProjectData((prev) => ({
+      ...prev,
+      businessCase: updater(ensureBusinessCaseState(prev.businessCase)),
+    }));
+  };
+
+  const updateValueInput = (field, value) => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      valueInputs: {
+        ...prev.valueInputs,
+        value,
+      },
+    }));
+  };
+
+  const updateCostInput = (field, value) => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      costInputs: {
+        ...prev.costInputs,
+        value,
+      },
+    }));
+  };
+
+  const updateScenario = (scenarioKey, field, value) => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      scenarios: {
+        ...prev.scenarios,
+        {
+          ...prev.scenarios[scenarioKey],
+          value,
+        },
+      },
     }));
   };
 
@@ -384,98 +480,3 @@ import SectionCard from "../common/SectionCard      },import SectionCard from ".
     </SectionCard>
   );
 }
-import OutputSummaryCard from "./OutputSummaryCard";
-import {
-  calculateScenarioSummary,
-  ensureBusinessCaseState,
-  formatCurrency,
-  formatNumber,
-} from "../../utils/calculationHelpers";
-
-function FieldLabel({ label, helper }) {
-  return (
-    <div className="mb-2">
-      <label className="block text-sm font-semibold text-slate-900">
-        {label}
-      </label>
-      {helper ? (
-        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
-      ) : null}
-    </div>
-  );
-}
-
-function TextInput({ value, onChange, placeholder }) {
-  return (
-    <input
-      type="text"
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-    />
-  );
-}
-
-function TextArea({ value, onChange, placeholder, rows = 4 }) {
-  return (
-    <textarea
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      rows={rows}
-      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-    />
-  );
-}
-
-export default function BusinessCaseCalculatorSection({
-  projectData,
-  setProjectData,
-}) {
-  const businessCase = useMemo(
-    () => ensureBusinessCaseState(projectData.businessCase),
-    [projectData.businessCase]
-  );
-
-  const summary = useMemo(
-    () => calculateScenarioSummary(businessCase),
-    [businessCase]
-  );
-
-  const updateBusinessCase = (updater) => {
-    setProjectData((prev) => ({
-      ...prev,
-      businessCase: updater(ensureBusinessCaseState(prev.businessCase)),
-    }));
-  };
-
-  const updateValueInput = (field, value) => {
-    updateBusinessCase((prev) => ({
-      ...prev,
-      valueInputs: {
-        ...prev.valueInputs,
-        [field]: value,
-      },
-    }));
-  };
-
-  const updateCostInput = (field, value) => {
-    updateBusinessCase((prev) => ({
-      ...prev,
-      costInputs: {
-        ...prev.costInputs,
-        [field]: value,
-      },
-    }));
-  };
-
-  const updateScenario = (scenarioKey, field, value) => {
-    updateBusinessCase((prev) => ({
-      ...prev,
-      scenarios: {
-        ...prev.scenarios,
-        [scenarioKey]: {
-          ...prev.scenarios[scenarioKey],
-          [field]: value,
-        },
