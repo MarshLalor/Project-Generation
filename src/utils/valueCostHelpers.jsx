@@ -221,3 +221,93 @@ const valueAliases = {
     "## Suggested Estimation Methods",
   ],
   preliminaryValueModel: [
+    "F. Preliminary High-Level Value Model",
+    "Preliminary High-Level Value Model",
+    "Preliminary Value Model",
+    "## Preliminary High-Level Value Model",
+  ],
+  confidenceNotes: [
+    "G. Confidence / Assumption Notes",
+    "Confidence / Assumption Notes",
+    "Confidence Notes",
+    "## Confidence / Assumption Notes",
+  ],
+};
+
+const costAliases = {
+  costCategories: [
+    "A. Cost Categories",
+    "Cost Categories",
+    "## Cost Categories",
+  ],
+  knownInputs: ["B. Known Inputs", "Known Inputs", "## Known Inputs"],
+  missingInputs: ["C. Missing Inputs", "Missing Inputs", "## Missing Inputs"],
+  followUpQuestions: [
+    "D. Step-by-Step Questions",
+    "Step-by-Step Questions",
+    "Questions",
+    "## Step-by-Step Questions",
+  ],
+  estimationMethods: [
+    "E. Recommended Estimation Methods",
+    "Recommended Estimation Methods",
+    "Estimation Methods",
+    "## Recommended Estimation Methods",
+  ],
+  preliminaryCostSummary: [
+    "F. Preliminary Cost Estimate Summary",
+    "Preliminary Cost Estimate Summary",
+    "Cost Estimate Summary",
+    "## Preliminary Cost Estimate Summary",
+  ],
+  assumptionsConfidenceNotes: [
+    "G. Assumptions and Confidence Notes",
+    "Assumptions and Confidence Notes",
+    "Confidence Notes",
+    "## Assumptions and Confidence Notes",
+  ],
+};
+
+export function parseValueEstimateResponse(responseText) {
+  return parseStructuredResponse(responseText, valueAliases);
+}
+
+export function parseCostEstimateResponse(responseText) {
+  return parseStructuredResponse(responseText, costAliases);
+}
+
+export function getValueEstimateProgress(valueEstimate) {
+  const fields = [
+    valueEstimate?.likelyValueDrivers,
+    valueEstimate?.knownInputs,
+    valueEstimate?.missingInputs,
+    valueEstimate?.followUpQuestions,
+    valueEstimate?.estimationMethods,
+    valueEstimate?.preliminaryValueModel,
+    valueEstimate?.confidenceNotes,
+  ];
+
+  const completed = fields.filter((field) => field && String(field).trim()).length;
+  const total = fields.length;
+  const percent = Math.round((completed / total) * 100);
+
+  return { completed, total, percent };
+}
+
+export function getCostEstimateProgress(costEstimate) {
+  const fields = [
+    costEstimate?.costCategories,
+    costEstimate?.knownInputs,
+    costEstimate?.missingInputs,
+    costEstimate?.followUpQuestions,
+    costEstimate?.estimationMethods,
+    costEstimate?.preliminaryCostSummary,
+    costEstimate?.assumptionsConfidenceNotes,
+  ];
+
+  const completed = fields.filter((field) => field && String(field).trim()).length;
+  const total = fields.length;
+  const percent = Math.round((completed / total) * 100);
+
+  return { completed, total, percent };
+}
