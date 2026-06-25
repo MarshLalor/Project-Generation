@@ -1,4 +1,135 @@
-import React, { useMemo, useState } from "react";import React, { useMemo, useState } from, labor rates, implementation effort, training, integration, support assumptions, and scenario calculations."
+import React, { useMemo, useState } from "react";
+import BuilderLayout from "./BuilderLayout";
+import SectionCard from "../common/SectionCard";
+import PromptPanel from "./PromptPanel";
+import OutputSummaryCard from "./OutputSummaryCard";
+import BusinessCaseCalculatorSection from "./BusinessCaseCalculatorSection";
+import {
+  buildCostEstimatePrompt,
+  getAssumptionsPreview,
+  parseCostEstimateResponse,
+} from "../../utils/valueCostHelpers";
+import { getCostEstimateCompletion } from "../../utils/workspaceHelpers";
+
+function FieldLabel({ label, helper }) {
+  return (
+    <div className="mb-2">
+      <label className="block text-sm font-semibold text-slate-900">
+        {label}
+      </label>
+      {helper ? (
+        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function TextArea({ value, onChange, placeholder, rows = 4 }) {
+  return (
+    <textarea
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+    />
+  );
+}
+
+export default function CostEstimateWorkspace({
+  projectData,
+  setProjectData,
+  onGoHome,
+  onBackToValue,
+  onContinueToOutputs,
+  onContinueToAssumptions,
+}) {
+  const [copyStatus, setCopyStatus] = useState("idle");
+
+  const basics = projectData.projectBasics;
+  const costEstimate = projectData.costEstimate;
+
+  const assumptionsPreview = useMemo(
+    () => getAssumptionsPreview(projectData),
+    [projectData]
+  );
+
+  const completion = useMemo(
+    () => getCostEstimateCompletion(projectData),
+    [projectData]
+  );
+
+  const livePrompt = useMemo(() => {
+    return costEstimate.promptText && costEstimate.promptText.trim()
+      ? costEstimate.promptText
+      : buildCostEstimatePrompt(projectData);
+  }, [projectData, costEstimate.promptText]);
+
+  const updateCostField = (field, value) => {
+    setProjectData((prev) => ({
+      ...prev,
+      costEstimate: {
+        ...prev.costEstimate,
+        value,
+      },
+    }));
+  };
+
+  const handleGeneratePrompt = () => {
+    const promptText = buildCostEstimatePrompt(projectData);
+
+    setProjectData((prev) => ({
+      ...prev,
+      costEstimate: {
+        ...prev.costEstimate,
+        promptText,
+      },
+    }));
+  };
+
+  const handleCopyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(livePrompt);
+      setCopyStatus("copied");
+      window.setTimeout(() => setCopyStatus("idle"), 1800);
+    } catch (error) {
+      setCopyStatus("failed");
+      window.setTimeout(() => setCopyStatus("idle"), 2200);
+    }
+  };
+
+  const handleParseResponse = () => {
+    const parsed = parseCostEstimateResponse(costEstimate.aiResponse);
+
+    setProjectData((prev) => ({
+      ...prev,
+      costEstimate: {
+        ...prev.costEstimate,
+        ...parsed,
+      },
+    }));
+  };
+
+  const handleNext = () => {
+    if (onContinueToAssumptions) {
+      onContinueToAssumptions();
+      return;
+    }
+
+    if (onContinueToOutputs) {
+      onContinueToOutputs();
+    }
+  };
+
+  return (
+    <BuilderLayout
+      badges={[
+        { label: "Cost Estimate", tone: "blue" },
+        { label: "Assumptions-Aware", tone: "softBlue" },
+        { label: "Scenario Calculator", tone: "orange" },
+      ]}
+      title="Cost Estimate Workspace"
+      description="Use this tab to create a high-level cost estimate for Year 1 and recurring annual cost using shared assumptions, labor rates, implementation effort, training, integration, support assumptions, and scenario calculations."
       actions={
         <>
           <button
@@ -287,133 +418,3 @@ G. Assumptions and Confidence Notes`}
     />
   );
 }
-import BuilderLayout from "./BuilderLayout";
-import SectionCard from "../common/SectionCard";
-import PromptPanel from "./PromptPanel";
-import OutputSummaryCard from "./OutputSummaryCard";
-import BusinessCaseCalculatorSection from "./BusinessCaseCalculatorSection";
-import {
-  buildCostEstimatePrompt,
-  getAssumptionsPreview,
-  parseCostEstimateResponse,
-} from "../../utils/valueCostHelpers";
-import { getCostEstimateCompletion } from "../../utils/workspaceHelpers";
-
-function FieldLabel({ label, helper }) {
-  return (
-    <div className="mb-2">
-      <label className="block text-sm font-semibold text-slate-900">
-        {label}
-      </label>
-      {helper ? (
-        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
-      ) : null}
-    </div>
-  );
-}
-
-function TextArea({ value, onChange, placeholder, rows = 4 }) {
-  return (
-    <textarea
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      rows={rows}
-      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-    />
-  );
-}
-
-export default function CostEstimateWorkspace({
-  projectData,
-  setProjectData,
-  onGoHome,
-  onBackToValue,
-  onContinueToOutputs,
-  onContinueToAssumptions,
-}) {
-  const [copyStatus, setCopyStatus] = useState("idle");
-
-  const basics = projectData.projectBasics;
-  const costEstimate = projectData.costEstimate;
-
-  const assumptionsPreview = useMemo(
-    () => getAssumptionsPreview(projectData),
-    [projectData]
-  );
-
-  const completion = useMemo(
-    () => getCostEstimateCompletion(projectData),
-    [projectData]
-  );
-
-  const livePrompt = useMemo(() => {
-    return costEstimate.promptText && costEstimate.promptText.trim()
-      ? costEstimate.promptText
-      : buildCostEstimatePrompt(projectData);
-  }, [projectData, costEstimate.promptText]);
-
-  const updateCostField = (field, value) => {
-    setProjectData((prev) => ({
-      ...prev,
-      costEstimate: {
-        ...prev.costEstimate,
-        [field]: value,
-      },
-    }));
-  };
-
-  const handleGeneratePrompt = () => {
-    const promptText = buildCostEstimatePrompt(projectData);
-
-    setProjectData((prev) => ({
-      ...prev,
-      costEstimate: {
-        ...prev.costEstimate,
-        promptText,
-      },
-    }));
-  };
-
-  const handleCopyPrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(livePrompt);
-      setCopyStatus("copied");
-      window.setTimeout(() => setCopyStatus("idle"), 1800);
-    } catch (error) {
-      setCopyStatus("failed");
-      window.setTimeout(() => setCopyStatus("idle"), 2200);
-    }
-  };
-
-  const handleParseResponse = () => {
-    const parsed = parseCostEstimateResponse(costEstimate.aiResponse);
-
-    setProjectData((prev) => ({
-      ...prev,
-      costEstimate: {
-        ...prev.costEstimate,
-        ...parsed,
-      },
-    }));
-  };
-
-  const handleNext = () => {
-    if (onContinueToAssumptions) {
-      onContinueToAssumptions();
-      return;
-    }
-
-    if (onContinueToOutputs) {
-      onContinueToOutputs();
-    }
-  };
-
-  return (
-    <BuilderLayout
-      badges={[
-        { label: "Cost Estimate", tone: "blue" },
-        { label: "Assumptions-Aware", tone: "softBlue" },
-        { label: "Scenario Calculator", tone: "orange" },
-      ]}
-      title="Cost Estimate Workspace"
