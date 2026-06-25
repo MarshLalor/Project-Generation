@@ -18,12 +18,16 @@ function multilineToBullets(value, fallback = "Not yet provided") {
     .join("\n");
 }
 
+function rowHasContent(row) {
+  return Object.values(row || {}).some(
+    (value) => value && String(value).trim()
+  );
+}
+
 function buildPlanSectionSummary(label, section) {
   return [
     `${label}`,
-    section?.draftContent?.trim()
-      ? section.draftContent
-      : "Not yet drafted.",
+    section?.draftContent?.trim() ? section.draftContent : "Not yet drafted.",
     "",
     "Missing Information",
     section?.missingInformation?.trim()
@@ -47,6 +51,66 @@ function buildPlanSectionSummary(label, section) {
   ].join("\n");
 }
 
+function formatLaborRates(roles = []) {
+  const populated = roles.filter(rowHasContent);
+
+  if (!populated.length) {
+    return "• Not yet provided";
+  }
+
+  return populated
+    .map((row) => {
+      return [
+        `• Role: ${safeText(row.role)}`,
+        `  Annual Salary: ${safeText(row.annualSalary)}`,
+        `  Hourly Rate: ${safeText(row.hourlyRate)}`,
+        `  Fully Loaded Rate: ${safeText(row.fullyLoadedRate)}`,
+        `  Source: ${safeText(row.source)}`,
+        `  Notes: ${safeText(row.notes)}`,
+      ].join("\n");
+    })
+    .join("\n\n");
+}
+
+function formatMetricRows(items = []) {
+  const populated = items.filter(rowHasContent);
+
+  if (!populated.length) {
+    return "• Not yet provided";
+  }
+
+  return populated
+    .map((row) => {
+      return [
+        `• ${safeText(row.name)}`,
+        `  Value: ${safeText(row.value)}`,
+        `  Unit: ${safeText(row.unit)}`,
+        `  Source: ${safeText(row.source)}`,
+        `  Notes: ${safeText(row.notes)}`,
+      ].join("\n");
+    })
+    .join("\n\n");
+}
+
+function formatBenchmarkRows(items = []) {
+  const populated = items.filter(rowHasContent);
+
+  if (!populated.length) {
+    return "• Not yet provided";
+  }
+
+  return populated
+    .map((row) => {
+      return [
+        `• Category: ${safeText(row.category)}`,
+        `  Source: ${safeText(row.source)}`,
+        `  Assumption: ${safeText(row.assumption)}`,
+        `  Notes: ${safeText(row.notes)}`,
+      ].join("\n");
+    })
+    .join("\n\n");
+}
+
 export function buildOutputsPayload(projectData) {
   const basics = projectData?.projectBasics || {};
   const ideation = projectData?.ideation?.parsedSections || {};
@@ -54,6 +118,7 @@ export function buildOutputsPayload(projectData) {
   const planStudio = projectData?.planStudio || {};
   const valueEstimate = projectData?.valueEstimate || {};
   const costEstimate = projectData?.costEstimate || {};
+  const assumptions = projectData?.assumptions || {};
 
   const effectiveCharterText =
     charter.charterText && charter.charterText.trim()
@@ -182,6 +247,45 @@ export function buildOutputsPayload(projectData) {
     multilineToBullets(costEstimate.assumptionsConfidenceNotes),
   ].join("\n");
 
+  const assumptionsRegister = [
+    `${safeText(basics.title, "Untitled Project")} — Assumptions Register`,
+    "",
+    "LABOR RATE ASSUMPTIONS",
+    formatLaborRates(assumptions?.laborRates?.roles || []),
+    "",
+    "Labor Rate Notes",
+    safeText(assumptions?.laborRates?.notes),
+    "",
+    "EFFORT ASSUMPTIONS",
+    formatMetricRows(assumptions?.effortAssumptions?.items || []),
+    "",
+    "Effort Notes",
+    safeText(assumptions?.effortAssumptions?.notes),
+    "",
+    "VOLUME ASSUMPTIONS",
+    formatMetricRows(assumptions?.volumeAssumptions?.items || []),
+    "",
+    "Volume Notes",
+    safeText(assumptions?.volumeAssumptions?.notes),
+    "",
+    "BENCHMARK ASSUMPTIONS",
+    formatBenchmarkRows(assumptions?.benchmarkAssumptions?.items || []),
+    "",
+    "Benchmark Notes",
+    safeText(assumptions?.benchmarkAssumptions?.notes),
+    "",
+    "CALCULATION SETTINGS",
+    `Burden Factor: ${safeText(
+      assumptions?.calculationAssumptions?.burdenFactor
+    )}`,
+    `Confidence Level: ${safeText(
+      assumptions?.calculationAssumptions?.confidenceLevel
+    )}`,
+    "",
+    "Calculation Notes",
+    safeText(assumptions?.calculationAssumptions?.notes),
+  ].join("\n");
+
   const openQuestionsAndAssumptions = [
     `${safeText(basics.title, "Untitled Project")} — Open Questions & Assumptions`,
     "",
@@ -196,6 +300,9 @@ export function buildOutputsPayload(projectData) {
     "",
     "PROJECT RISKS / DEPENDENCIES",
     multilineToBullets(basics.risksDependencies),
+    "",
+    "ASSUMPTIONS WORKSPACE OPEN QUESTIONS",
+    multilineToBullets(assumptions?.openQuestions),
     "",
     "PLAN STUDIO — SCOPE QUESTIONS",
     multilineToBullets(sections.scope?.questionsForUser),
@@ -239,6 +346,10 @@ export function buildOutputsPayload(projectData) {
     "",
     "============================================================",
     "",
+    assumptionsRegister,
+    "",
+    "============================================================",
+    "",
     openQuestionsAndAssumptions,
   ].join("\n");
 
@@ -247,6 +358,7 @@ export function buildOutputsPayload(projectData) {
     projectPlanSummary,
     valueSummary,
     costSummary,
+    assumptionsRegister,
     openQuestionsAndAssumptions,
     fullOutputPack,
   };
@@ -257,10 +369,9 @@ export function getOutputsReadiness(projectData) {
     projectData?.charter?.charterText?.trim() ||
     projectData?.projectBasics?.projectObjective?.trim();
 
-  const hasPlan =
-    Object.values(projectData?.planStudio?.sections || {}).some(
-      (section) => section?.draftContent && String(section.draftContent).trim()
-    );
+  const hasPlan = Object.values(projectData?.planStudio?.sections || {}).some(
+    (section) => section?.draftContent && String(section.draftContent).trim()
+  );
 
   const hasValue =
     projectData?.valueEstimate?.preliminaryValueModel?.trim() ||
@@ -270,11 +381,21 @@ export function getOutputsReadiness(projectData) {
     projectData?.costEstimate?.preliminaryCostSummary?.trim() ||
     projectData?.costEstimate?.costCategories?.trim();
 
+  const assumptions = projectData?.assumptions || {};
+
+  const hasAssumptions =
+    assumptions?.laborRates?.roles?.some(rowHasContent) ||
+    assumptions?.effortAssumptions?.items?.some(rowHasContent) ||
+    assumptions?.volumeAssumptions?.items?.some(rowHasContent) ||
+    assumptions?.benchmarkAssumptions?.items?.some(rowHasContent) ||
+    assumptions?.openQuestions?.trim();
+
   const checks = [
     { label: "Charter", ready: !!charterReady },
     { label: "Project Plan Summary", ready: !!hasPlan },
     { label: "Value Summary", ready: !!hasValue },
     { label: "Cost Summary", ready: !!hasCost },
+    { label: "Assumptions Register", ready: !!hasAssumptions },
   ];
 
   const completed = checks.filter((item) => item.ready).length;
