@@ -1,4 +1,5 @@
-function safeText(value, fallback = "Not yet provided") {function safeText(value, fallback = "Not).trim() : fallback;
+function safeText(value, fallback = "Not yet provided") {
+  return value && String(value).trim() ? String(value).trim() : fallback;
 }
 
 export const planSectionConfigs = [
