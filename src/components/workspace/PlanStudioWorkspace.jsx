@@ -87,7 +87,8 @@ export default function PlanStudioWorkspace({
     planSectionConfigs.find((item) => item.id === activeSectionId) ||
     planSectionConfigs[0];
 
-  const activeSectionState = planStudio.sections[activeSectionId];
+  const activeSectionState =
+    planStudio.sections[activeSectionId] || planStudio.sections.scope;
 
   const progress = useMemo(
     () => getPlanStudioProgress(planStudio),
@@ -107,9 +108,9 @@ export default function PlanStudioWorkspace({
         ...prev.planStudio,
         sections: {
           ...prev.planStudio.sections,
-          [activeSectionId]: {
+          {
             ...prev.planStudio.sections[activeSectionId],
-            [field]: value,
+            value,
           },
         },
       },
@@ -135,7 +136,7 @@ export default function PlanStudioWorkspace({
         ...prev.planStudio,
         sections: {
           ...prev.planStudio.sections,
-          [activeSectionId]: {
+          {
             ...prev.planStudio.sections[activeSectionId],
             promptText,
           },
@@ -164,7 +165,7 @@ export default function PlanStudioWorkspace({
         ...prev.planStudio,
         sections: {
           ...prev.planStudio.sections,
-          [activeSectionId]: {
+          {
             ...prev.planStudio.sections[activeSectionId],
             ...parsed,
           },
@@ -182,7 +183,7 @@ export default function PlanStudioWorkspace({
         ...prev.planStudio,
         sections: {
           ...prev.planStudio.sections,
-          [activeSectionId]: {
+          {
             ...prev.planStudio.sections[activeSectionId],
             ...parsed,
             draftContent:
@@ -197,12 +198,12 @@ export default function PlanStudioWorkspace({
   return (
     <BuilderLayout
       badges={[
-        { label: "Plan Studio V1", tone: "blue" },
+        { label: "Plan Studio", tone: "blue" },
         { label: "PMBOK-Aligned", tone: "softBlue" },
         { label: "AI Section Builder", tone: "orange" },
       ]}
       title="Plan Studio Workspace"
-      description="Build the project plan section by section using Project Basics and the Charter as source context. This V1 includes Scope, Schedule, Risk, and Communications."
+      description="Build the project plan section by section using Project Basics and the Charter as source context."
       actions={
         <>
           <button
@@ -359,19 +360,19 @@ E. Key Assumptions`}
           helperSteps={[
             {
               title: "Step 1",
-              body: "Select a planning section and refresh the prompt so it uses the latest Project Basics and Charter content.",
+              body: "Select a planning section and refresh the prompt.",
             },
             {
               title: "Step 2",
-              body: "Copy the prompt into your AI tool and ask it to return the output using the exact required headings.",
+              body: "Copy the prompt into your AI tool.",
             },
             {
               title: "Step 3",
-              body: "Paste the response back here and parse it into structured project plan components.",
+              body: "Paste the response back and parse it.",
             },
             {
               title: "Step 4",
-              body: "Apply the parsed result to the section draft, then refine it before moving on to the next section.",
+              body: "Apply the parsed result to the section draft.",
             },
           ]}
         />

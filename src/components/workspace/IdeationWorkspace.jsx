@@ -125,11 +125,10 @@ export default function IdeationWorkspace({
     <BuilderLayout
       badges={[
         { label: "Ideation Studio", tone: "blue" },
-        { label: "Shared Workspace Pattern", tone: "softBlue" },
         { label: "AI Prompt Workflow", tone: "orange" },
       ]}
       title="Ideation Workspace"
-      description="Use this tab to turn an early idea, pain point, or opportunity into a more structured project concept. The output is designed to feed Project Basics and the Charter automatically once parsed and applied."
+      description="Turn an early idea, pain point, or opportunity into a structured project concept that can feed Project Basics and Charter."
       actions={
         <>
           <button
@@ -163,14 +162,11 @@ export default function IdeationWorkspace({
         <>
           <SectionCard
             title="Initial idea intake"
-            subtitle="Start lightweight. This section is intentionally designed to work even when the project is still fuzzy."
+            subtitle="Start lightweight. This section works even when the project is still fuzzy."
           >
             <div className="space-y-5">
               <div>
-                <FieldLabel
-                  label="Idea Type"
-                  helper="Choose a category to help frame the brainstorm."
-                />
+                <FieldLabel label="Idea Type" />
                 <div className="flex flex-wrap gap-2">
                   {ideaTypeOptions.map((type) => {
                     const active = ideation.ideaType === type;
@@ -212,10 +208,7 @@ export default function IdeationWorkspace({
               </div>
 
               <div>
-                <FieldLabel
-                  label="Industry / business context"
-                  helper="Give the AI enough context to tailor the brainstorming."
-                />
+                <FieldLabel label="Industry / business context" />
                 <TextArea
                   value={ideation.businessContext}
                   onChange={(e) =>
@@ -230,10 +223,7 @@ export default function IdeationWorkspace({
               </div>
 
               <div>
-                <FieldLabel
-                  label="Initial problem or frustration"
-                  helper="What feels inefficient, risky, manual, costly, or slow today?"
-                />
+                <FieldLabel label="Initial problem or frustration" />
                 <TextArea
                   value={ideation.currentPain}
                   onChange={(e) =>
@@ -245,16 +235,13 @@ export default function IdeationWorkspace({
               </div>
 
               <div>
-                <FieldLabel
-                  label="Known goal or desired outcome"
-                  helper="Focus on the outcome you want to achieve — time saved, quality improved, cost reduced, etc."
-                />
+                <FieldLabel label="Known goal or desired outcome" />
                 <TextArea
                   value={ideation.knownGoal}
                   onChange={(e) =>
                     handleIdeationFieldChange("knownGoal", e.target.value)
                   }
-                  placeholder="Example: Reduce manual QA time, improve ad quality, and speed launch readiness."
+                  placeholder="Example: Reduce manual QA time, improve quality, and speed launch readiness."
                   rows={4}
                 />
               </div>
@@ -281,7 +268,7 @@ export default function IdeationWorkspace({
 
           <SectionCard
             title="Parsed ideation output"
-            subtitle="Once the AI response is parsed, the structured sections appear here and become reusable project inputs."
+            subtitle="Once the AI response is parsed, these sections become reusable project inputs."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <OutputSummaryCard
@@ -307,13 +294,16 @@ export default function IdeationWorkspace({
                 accent="orange"
               />
               <OutputSummaryCard
-                title="Key Stakeholders"
-                value={parsedSections.stakeholders}
+                title="Scope In"
+                value={parsedSections.scopeIn}
               />
-              <OutputSummaryCard title="Scope In" value={parsedSections.scopeIn} />
               <OutputSummaryCard
                 title="Scope Out"
                 value={parsedSections.scopeOut}
+              />
+              <OutputSummaryCard
+                title="Stakeholders"
+                value={parsedSections.stakeholders}
               />
               <OutputSummaryCard
                 title="Assumptions"
@@ -337,7 +327,7 @@ export default function IdeationWorkspace({
 
           <SectionCard
             title="Project field preview"
-            subtitle="These are the Project Basics fields that Ideation can populate when applied."
+            subtitle="These Project Basics fields can be populated from Ideation."
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <OutputSummaryCard
@@ -349,23 +339,19 @@ export default function IdeationWorkspace({
                 value={basics.projectObjective}
               />
               <OutputSummaryCard
-                title="Expected Business Outcome"
+                title="Expected Outcome"
                 value={basics.expectedBusinessOutcome}
                 accent="orange"
               />
               <OutputSummaryCard title="In Scope" value={basics.scopeIn} />
               <OutputSummaryCard title="Out of Scope" value={basics.scopeOut} />
               <OutputSummaryCard
-                title="Key Stakeholders"
+                title="Stakeholders"
                 value={basics.keyStakeholders}
               />
               <OutputSummaryCard
-                title="Key Assumptions"
+                title="Assumptions"
                 value={basics.keyAssumptions}
-              />
-              <OutputSummaryCard
-                title="Risks / Dependencies"
-                value={basics.risksDependencies}
               />
               <OutputSummaryCard
                 title="Initial Value Hypothesis"
@@ -413,19 +399,19 @@ K. Open Questions`}
           helperSteps={[
             {
               title: "Step 1",
-              body: "Enter a few lightweight details about the idea, pain point, or opportunity.",
+              body: "Enter lightweight details about the idea, pain point, or opportunity.",
             },
             {
               title: "Step 2",
-              body: "Generate the ideation prompt and copy it into your AI tool to get structured brainstorming output.",
+              body: "Generate and copy the ideation prompt into your AI tool.",
             },
             {
               title: "Step 3",
-              body: "Paste the AI response back into the tool and parse it into structured sections.",
+              body: "Paste the response back and parse it into structured sections.",
             },
             {
               title: "Step 4",
-              body: "Apply the parsed output to the project object so Project Basics and Charter start from stronger information.",
+              body: "Apply the parsed output to Project Basics.",
             },
           ]}
         />

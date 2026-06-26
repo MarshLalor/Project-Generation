@@ -69,7 +69,7 @@ export default function ValueEstimateWorkspace({
       ...prev,
       valueEstimate: {
         ...prev.valueEstimate,
-        [field]: value,
+        value,
       },
     }));
   };
@@ -227,120 +227,78 @@ export default function ValueEstimateWorkspace({
           >
             <div className="grid gap-5">
               <div>
-                <FieldLabel
-                  label="Likely Value Drivers"
-                  helper="What are the most likely sources of business value?"
-                />
+                <FieldLabel label="Likely Value Drivers" />
                 <TextArea
                   value={valueEstimate.likelyValueDrivers}
                   onChange={(e) =>
                     updateValueField("likelyValueDrivers", e.target.value)
                   }
-                  placeholder={`One item per line
-Example: labor savings from reduced manual review
-Example: error reduction and rework avoidance`}
                   rows={5}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Known Inputs"
-                  helper="Capture variables already known today, including assumptions that will drive the estimate."
-                />
+                <FieldLabel label="Known Inputs" />
                 <TextArea
                   value={valueEstimate.knownInputs}
                   onChange={(e) =>
                     updateValueField("knownInputs", e.target.value)
                   }
-                  placeholder={`One item per line
-Example: approx. 20,000 ads reviewed per month
-Example: fully loaded hourly rate assumptions exist for key roles`}
                   rows={5}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Missing Inputs"
-                  helper="List the data still needed to create a better estimate."
-                />
+                <FieldLabel label="Missing Inputs" />
                 <TextArea
                   value={valueEstimate.missingInputs}
                   onChange={(e) =>
                     updateValueField("missingInputs", e.target.value)
                   }
-                  placeholder={`One item per line
-Example: current error/rework rate
-Example: % review effort reducible by automation`}
                   rows={5}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Step-by-Step Follow-Up Questions"
-                  helper="These should guide the user through the remaining variables."
-                />
+                <FieldLabel label="Step-by-Step Follow-Up Questions" />
                 <TextArea
                   value={valueEstimate.followUpQuestions}
                   onChange={(e) =>
                     updateValueField("followUpQuestions", e.target.value)
                   }
-                  placeholder={`One question per line
-Example: How many ads are reviewed per week by each role?
-Example: What % of review effort could be reduced?`}
                   rows={6}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Suggested Estimation Methods"
-                  helper="Use high-level methods, ranges, or benchmark logic if exact data is missing."
-                />
+                <FieldLabel label="Suggested Estimation Methods" />
                 <TextArea
                   value={valueEstimate.estimationMethods}
                   onChange={(e) =>
                     updateValueField("estimationMethods", e.target.value)
                   }
-                  placeholder={`One item per line
-Example: use assumptions register labor rates
-Example: estimate annual savings using volume × hours saved × fully loaded rate`}
                   rows={5}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Preliminary High-Level Value Model"
-                  helper="Capture the structure of the estimate, not only the final number."
-                />
+                <FieldLabel label="Preliminary High-Level Value Model" />
                 <TextArea
                   value={valueEstimate.preliminaryValueModel}
                   onChange={(e) =>
                     updateValueField("preliminaryValueModel", e.target.value)
                   }
-                  placeholder={`Example:
-Annual labor savings = review volume × hours saved × fully loaded hourly rate
-Annual rework savings = error volume reduction × rework hours × weighted labor rate`}
                   rows={7}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Confidence / Assumption Notes"
-                  helper="Track where the estimate is strong and where assumptions still drive the numbers."
-                />
+                <FieldLabel label="Confidence / Assumption Notes" />
                 <TextArea
                   value={valueEstimate.confidenceNotes}
                   onChange={(e) =>
                     updateValueField("confidenceNotes", e.target.value)
                   }
-                  placeholder={`One item per line
-Example: labor rates are assumptions-register based
-Example: current-state QA effort has not yet been validated by time study`}
                   rows={5}
                 />
               </div>

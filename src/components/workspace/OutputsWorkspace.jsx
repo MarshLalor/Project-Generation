@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
 import PromptPanel from "./PromptPanel";
-import OutputSummaryCard from "./OutputSummaryCard";
 import ValidationReadinessPanel from "./ValidationReadinessPanel";
 import {
   buildOutputsPayload,
@@ -121,10 +120,7 @@ export default function OutputsWorkspace({
 
   const outputs = useMemo(() => buildOutputsPayload(projectData), [projectData]);
 
-  const bundles = useMemo(
-    () => buildExportBundles(projectData),
-    [projectData]
-  );
+  const bundles = useMemo(() => buildExportBundles(projectData), [projectData]);
 
   const readiness = useMemo(
     () => getOutputsReadiness(projectData),
@@ -144,7 +140,7 @@ export default function OutputsWorkspace({
       ...prev,
       executiveSummary: {
         ...prev.executiveSummary,
-        [field]: value,
+        value,
       },
     }));
   };
@@ -239,7 +235,7 @@ export default function OutputsWorkspace({
       badges={[
         { label: "Outputs Studio", tone: "blue" },
         { label: "Export Bundles", tone: "softBlue" },
-        { label: "Phase 3.6", tone: "orange" },
+        { label: "Executive Review", tone: "orange" },
       ]}
       title="Outputs Workspace"
       description="Compile, validate, copy, and download individual deliverables or curated export bundles for executive review, planning, and business case use."
@@ -423,7 +419,7 @@ export default function OutputsWorkspace({
                 onClick={() =>
                   copyText(outputs.executiveSummary, "Executive Summary Copied")
                 }
-                className="rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-left text-sm font-mediumnge-700 transition hover:bg-orange-100"
+                className="rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-left text-sm font-medium text-orange-700 transition hover:bg-orange-100"
               >
                 Copy Executive Summary
               </button>
@@ -599,19 +595,15 @@ export default function OutputsWorkspace({
                   Executive Pack
                 </p>
                 <p className="mt-1 text-sm text-slate-700">
-                  Executive Summary, Scenario Summary, Value Summary, Cost Summary,
-                  and Open Questions.
+                  Executive Summary, Scenario Summary, Value Summary, Cost
+                  Summary, and Open Questions.
                 </p>
               </div>
 
               <DownloadButton
                 label="Download Executive Pack (.md)"
                 onClick={() =>
-                  downloadOutput(
-                    "Executive Pack",
-                    bundles.executivePack,
-                    "md"
-                  )
+                  downloadOutput("Executive Pack", bundles.executivePack, "md")
                 }
               />
 

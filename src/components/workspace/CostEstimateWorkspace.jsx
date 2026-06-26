@@ -239,114 +239,73 @@ export default function CostEstimateWorkspace({
           >
             <div className="grid gap-5">
               <div>
-                <FieldLabel
-                  label="Cost Categories"
-                  helper="Separate cost types in a way that supports a rough cost model."
-                />
+                <FieldLabel label="Cost Categories" />
                 <TextArea
                   value={costEstimate.costCategories}
                   onChange={(e) =>
                     updateCostField("costCategories", e.target.value)
                   }
-                  placeholder={`One item per line
-Example: software / license cost
-Example: implementation partner cost
-Example: internal labor cost`}
                   rows={5}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Known Inputs"
-                  helper="Capture cost information already known today, including assumptions that will drive the estimate."
-                />
+                <FieldLabel label="Known Inputs" />
                 <TextArea
                   value={costEstimate.knownInputs}
                   onChange={(e) =>
                     updateCostField("knownInputs", e.target.value)
                   }
-                  placeholder={`One item per line
-Example: vendor quote estimate available
-Example: internal labor assumptions exist in the assumptions register`}
                   rows={5}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Missing Inputs"
-                  helper="List what still needs to be confirmed to improve the estimate."
-                />
+                <FieldLabel label="Missing Inputs" />
                 <TextArea
                   value={costEstimate.missingInputs}
                   onChange={(e) =>
                     updateCostField("missingInputs", e.target.value)
                   }
-                  placeholder={`One item per line
-Example: software license tier
-Example: integration labor hours
-Example: training effort`}
                   rows={5}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Step-by-Step Questions"
-                  helper="These questions should walk the user through the remaining cost variables."
-                />
+                <FieldLabel label="Step-by-Step Questions" />
                 <TextArea
                   value={costEstimate.followUpQuestions}
                   onChange={(e) =>
                     updateCostField("followUpQuestions", e.target.value)
                   }
-                  placeholder={`One question per line
-Example: What is the expected software subscription model?
-Example: How many internal hours will be needed for implementation?`}
                   rows={6}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Recommended Estimation Methods"
-                  helper="Use benchmark logic or ranges when exact data is not available."
-                />
+                <FieldLabel label="Recommended Estimation Methods" />
                 <TextArea
                   value={costEstimate.estimationMethods}
                   onChange={(e) =>
                     updateCostField("estimationMethods", e.target.value)
                   }
-                  placeholder={`One item per line
-Example: estimate internal labor using assumptions-register rates
-Example: use low / expected / high range for vendor implementation`}
                   rows={5}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Preliminary Cost Estimate Summary"
-                  helper="Capture the early structure of the estimate including one-time and recurring views."
-                />
+                <FieldLabel label="Preliminary Cost Estimate Summary" />
                 <TextArea
                   value={costEstimate.preliminaryCostSummary}
                   onChange={(e) =>
                     updateCostField("preliminaryCostSummary", e.target.value)
                   }
-                  placeholder={`Example:
-Year 1 cost = software + implementation + internal labor + training + contingency
-Recurring annual cost = ongoing license + support + maintenance`}
                   rows={7}
                 />
               </div>
 
               <div>
-                <FieldLabel
-                  label="Assumptions and Confidence Notes"
-                  helper="Track what is still estimated, benchmark-based, or uncertain."
-                />
+                <FieldLabel label="Assumptions and Confidence Notes" />
                 <TextArea
                   value={costEstimate.assumptionsConfidenceNotes}
                   onChange={(e) =>
@@ -355,9 +314,6 @@ Recurring annual cost = ongoing license + support + maintenance`}
                       e.target.value
                     )
                   }
-                  placeholder={`One item per line
-Example: internal labor rates are assumptions-register based
-Example: vendor integration scope still needs validation`}
                   rows={5}
                 />
               </div>

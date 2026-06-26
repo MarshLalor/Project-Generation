@@ -81,7 +81,10 @@ export default function AssumptionsWorkspace({
     [assumptions]
   );
 
-  const summary = useMemo(() => summarizeAssumptions(assumptions), [assumptions]);
+  const summary = useMemo(
+    () => summarizeAssumptions(assumptions),
+    [assumptions]
+  );
 
   const benchmarkPrompt = useMemo(() => {
     return assumptions.benchmarkPrompt && assumptions.benchmarkPrompt.trim()
@@ -167,7 +170,10 @@ export default function AssumptionsWorkspace({
       ...prev,
       benchmarkAssumptions: {
         ...prev.benchmarkAssumptions,
-        items: [...prev.benchmarkAssumptions.items, createEmptyBenchmarkAssumption()],
+        items: [
+          ...prev.benchmarkAssumptions.items,
+          createEmptyBenchmarkAssumption(),
+        ],
       },
     }));
   };
@@ -210,7 +216,9 @@ export default function AssumptionsWorkspace({
         ...prev,
         benchmarkAssumptions: {
           ...prev.benchmarkAssumptions,
-          items: nextRows.length ? nextRows : [createEmptyBenchmarkAssumption()],
+          items: nextRows.length
+            ? nextRows
+            : [createEmptyBenchmarkAssumption()],
         },
       };
     });
@@ -268,7 +276,7 @@ export default function AssumptionsWorkspace({
         { label: "Planning + Estimation Glue", tone: "orange" },
       ]}
       title="Assumptions Workspace"
-      description="Use this tab to centralize labor rates, effort assumptions, volume assumptions, benchmark assumptions, calculation settings, and open questions so the project plan, value estimate, cost estimate, and outputs can work from a shared source of truth."
+      description="Centralize labor rates, effort assumptions, volume assumptions, benchmark assumptions, calculation settings, and open questions so planning, value, cost, and outputs work from a shared source of truth."
       actions={
         <>
           <button
@@ -350,7 +358,11 @@ export default function AssumptionsWorkspace({
                       <TextInput
                         value={row.hourlyRate}
                         onChange={(e) =>
-                          updateLaborRateRow(row.id, "hourlyRate", e.target.value)
+                          updateLaborRateRow(
+                            row.id,
+                            "hourlyRate",
+                            e.target.value
+                          )
                         }
                         placeholder="Example: 50"
                       />
@@ -389,7 +401,7 @@ export default function AssumptionsWorkspace({
                         onChange={(e) =>
                           updateLaborRateRow(row.id, "notes", e.target.value)
                         }
-                        placeholder="Add any context, burden assumptions, or scenario notes."
+                        placeholder="Add context, burden assumptions, or scenario notes."
                         rows={3}
                       />
                     </div>
@@ -401,24 +413,21 @@ export default function AssumptionsWorkspace({
                 </div>
               ))}
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <button
-                  type="button"
-                  onClick={addLaborRateRow}
-                  className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
-                >
-                  Add Labor Rate Row
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={addLaborRateRow}
+                className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
+              >
+                Add Labor Rate Row
+              </button>
 
               <div>
-                <FieldLabel
-                  label="Labor Rate Notes"
-                  helper="Use this for cross-role assumptions or notes about how rates were derived."
-                />
+                <FieldLabel label="Labor Rate Notes" />
                 <TextArea
                   value={assumptions.laborRates.notes}
-                  onChange={(e) => updateGroupNotes("laborRates", e.target.value)}
+                  onChange={(e) =>
+                    updateGroupNotes("laborRates", e.target.value)
+                  }
                   placeholder="Example: Fully loaded rates use a 1.3 burden factor where internal rates are unavailable."
                   rows={4}
                 />
@@ -449,7 +458,7 @@ export default function AssumptionsWorkspace({
                             e.target.value
                           )
                         }
-                        placeholder="Example: Manual QA hours per week"
+                        placeholder="Example: Manual QA hours saved per week"
                       />
                     </div>
 
@@ -465,7 +474,7 @@ export default function AssumptionsWorkspace({
                             e.target.value
                           )
                         }
-                        placeholder="Example: 12"
+                        placeholder="Example: 20"
                       />
                     </div>
 
@@ -481,7 +490,7 @@ export default function AssumptionsWorkspace({
                             e.target.value
                           )
                         }
-                        placeholder="hours / weeks / reviews"
+                        placeholder="hours per week"
                       />
                     </div>
 
@@ -544,7 +553,6 @@ export default function AssumptionsWorkspace({
                   onChange={(e) =>
                     updateGroupNotes("effortAssumptions", e.target.value)
                   }
-                  placeholder="Add any overarching notes about effort data quality, source confidence, or range logic."
                   rows={4}
                 />
               </div>
@@ -553,7 +561,7 @@ export default function AssumptionsWorkspace({
 
           <SectionCard
             title="Volume Assumptions"
-            subtitle="Track transaction, campaign, volume, or throughput assumptions that affect value and cost calculations."
+            subtitle="Track transaction, campaignons."
           >
             <div className="space-y-4">
               {assumptions.volumeAssumptions.items.map((row) => (
@@ -638,7 +646,6 @@ export default function AssumptionsWorkspace({
                             e.target.value
                           )
                         }
-                        placeholder="Add context, time window, or scenario notes."
                         rows={3}
                       />
                     </div>
@@ -669,7 +676,6 @@ export default function AssumptionsWorkspace({
                   onChange={(e) =>
                     updateGroupNotes("volumeAssumptions", e.target.value)
                   }
-                  placeholder="Add any notes about seasonality, period assumptions, or volume confidence."
                   rows={4}
                 />
               </div>
@@ -692,7 +698,11 @@ export default function AssumptionsWorkspace({
                       <TextInput
                         value={row.category}
                         onChange={(e) =>
-                          updateBenchmarkRow(row.id, "category", e.target.value)
+                          updateBenchmarkRow(
+                            row.id,
+                            "category",
+                            e.target.value
+                          )
                         }
                         placeholder="Example: Salary benchmark"
                       />
@@ -720,7 +730,6 @@ export default function AssumptionsWorkspace({
                             e.target.value
                           )
                         }
-                        placeholder="Describe the benchmark-assumption being used."
                         rows={3}
                       />
                     </div>
@@ -732,7 +741,6 @@ export default function AssumptionsWorkspace({
                         onChange={(e) =>
                           updateBenchmarkRow(row.id, "notes", e.target.value)
                         }
-                        placeholder="Add caveats, date range, geography notes, or scenario notes."
                         rows={3}
                       />
                     </div>
@@ -759,7 +767,6 @@ export default function AssumptionsWorkspace({
                   onChange={(e) =>
                     updateGroupNotes("benchmarkAssumptions", e.target.value)
                   }
-                  placeholder="Add any notes about benchmark source quality, comparability, or recency."
                   rows={4}
                 />
               </div>
@@ -772,10 +779,7 @@ export default function AssumptionsWorkspace({
           >
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <FieldLabel
-                  label="Burden Factor"
-                  helper="Example: 1.25, 1.3, or 1.4"
-                />
+                <FieldLabel label="Burden Factor" helper="Example: 1.3" />
                 <TextInput
                   value={assumptions.calculationAssumptions.burdenFactor}
                   onChange={(e) =>
@@ -786,10 +790,7 @@ export default function AssumptionsWorkspace({
               </div>
 
               <div>
-                <FieldLabel
-                  label="Confidence Level"
-                  helper="Example: Low / Medium / High"
-                />
+                <FieldLabel label="Confidence Level" />
                 <TextInput
                   value={assumptions.calculationAssumptions.confidenceLevel}
                   onChange={(e) =>
@@ -806,16 +807,12 @@ export default function AssumptionsWorkspace({
                   onChange={(e) =>
                     updateCalculationSetting("notes", e.target.value)
                   }
-                  placeholder="Add any notes about scenario logic, burden assumptions, or confidence framing."
                   rows={4}
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <FieldLabel
-                  label="Open Questions"
-                  helper="Track unresolved questions that affect planning, value, or cost quality."
-                />
+                <FieldLabel label="Open Questions" />
                 <TextArea
                   value={assumptions.openQuestions}
                   onChange={(e) =>
@@ -824,9 +821,6 @@ export default function AssumptionsWorkspace({
                       openQuestions: e.target.value,
                     }))
                   }
-                  placeholder={`One question per line
-Example: What are the validated fully loaded hourly rates by role?
-Example: What is the current rework rate for ad QA issues?`}
                   rows={6}
                 />
               </div>
@@ -890,8 +884,7 @@ Example: What is the current rework rate for ad QA issues?`}
 
           <SectionCard
             title="AI benchmark helper prompt"
-            subtitle="Use this prompt with an AI partner to help identify missing benchmark assumptions, salary logic, or calculation settings."
-            className="xl:sticky xl:top-[420px]"
+            subtitle="Use this prompt to help identify missing benchmark assumptions, salary logic, or calculation settings."
           >
             <div className="space-y-4">
               <div className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
@@ -919,10 +912,7 @@ Example: What is the current rework rate for ad QA issues?`}
               </div>
 
               <div>
-                <FieldLabel
-                  label="AI Notes"
-                  helper="Paste notes or recommendations from the AI partner here, then manually transfer anything useful into the assumptions register."
-                />
+                <FieldLabel label="AI Notes" />
                 <TextArea
                   value={assumptions.aiNotes}
                   onChange={(e) =>
@@ -931,15 +921,6 @@ Example: What is the current rework rate for ad QA issues?`}
                       aiNotes: e.target.value,
                     }))
                   }
-                  placeholder={`Paste AI notes here.
-
-Suggested response structure:
-A. Recommended Labor Rate Assumptions
-B. Recommended Effort Assumptions
-C. Recommended Volume Assumptions
-D. Recommended Benchmark Assumptions
-E. Suggested Calculation Settings
-F. Open Questions to Resolve`}
                   rows={12}
                 />
               </div>
@@ -955,31 +936,23 @@ F. Open Questions to Resolve`}
                 <p className="text-sm font-semibold text-sky-700">Step 1</p>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
                   Capture the most important labor, effort, and volume assumptions
-                  that affect your project plan, value estimate, and cost estimate.
+                  that affect your plan, value estimate, and cost estimate.
                 </p>
               </div>
 
               <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
                 <p className="text-sm font-semibold text-sky-700">Step 2</p>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Use benchmark assumptions when internal data is unavailable, but
-                  clearly note the source and confidence level.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-                <p className="text-sm font-semibold text-sky-700">Step 3</p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Set your burden factor and confidence level so later estimates
-                  are framed consistently.
+                  Use benchmark assumptions when internal data is unavailable,
+                  but clearly note the source and confidence level.
                 </p>
               </div>
 
               <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-                <p className="text-sm font-semibold text-orange-700">Step 4</p>
+                <p className="text-sm font-semibold text-orange-700">Step 3</p>
                 <p className="mt-1 text-sm leading-6 text-slate-700">
-                  Carry unresolved items into Open Questions so Outputs can surface
-                  what still needs validation.
+                  Carry unresolved items into Open Questions so Outputs can
+                  surface what still needs validation.
                 </p>
               </div>
             </div>

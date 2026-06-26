@@ -281,15 +281,13 @@ export default function BusinessCaseCalculatorSection({
     >
       <div className="space-y-8">
         <div className="rounded-3xl border border-sky-100 bg-sky-50/60 p-5">
-          <div>
-            <h3 className="text-base font-semibold text-slate-900">
-              Scenario Templates
-            </h3>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              Apply a template to quickly update low, expected, and high scenario
-              factors. You can still edit the factors manually afterward.
-            </p>
-          </div>
+          <h3 className="text-base font-semibold text-slate-900">
+            Scenario Templates
+          </h3>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Apply a template to quickly update low, expected, and high scenario
+            factors. You can still edit the factors manually afterward.
+          </p>
 
           <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {scenarioTemplates.map((template) => (
@@ -302,25 +300,9 @@ export default function BusinessCaseCalculatorSection({
                 <h4 className="text-sm font-semibold text-slate-900">
                   {template.title}
                 </h4>
-                <p className="mt-2 text-sm leading-6 text-slate-600"        </p>
-
-                <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-slate-600">
-                  <div className="rounded-2xl bg-sky-50 p-2">
-                    <p className="font-semibold text-sky-700">Low</p>
-                    <p>B {template.scenarios.low.benefitFactor}</p>
-                    <p>C {template.scenarios.low.costFactor}</p>
-                  </div>
-                  <div className="rounded-2xl bg-orange-50 p-2">
-                    <p className="font-semibold text-orange-700">Exp</p>
-                    <p>B {template.scenarios.expected.benefitFactor}</p>
-                    <p>C {template.scenarios.expected.costFactor}</p>
-                  </div>
-                  <div className="rounded-2xl bg-sky-50 p-2">
-                    <p className="font-semibold text-sky-700">High</p>
-                    <p>B {template.scenarios.high.benefitFactor}</p>
-                    <p>C {template.scenarios.high.costFactor}</p>
-                  </div>
-                </div>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {template.description}
+                </p>
               </button>
             ))}
           </div>
@@ -561,10 +543,7 @@ export default function BusinessCaseCalculatorSection({
                 }
                 placeholder="Example: 65"
               />
-            </div>
-
-            <div>
-              <FieldLabel label="Rework Savings" />
+             label="Rework Savings" />
               <TextInput
                 value={businessCase.valueInputs.reworkSavings}
                 onChange={(e) =>
@@ -756,8 +735,7 @@ export default function BusinessCaseCalculatorSection({
             Scenario Factors
           </h3>
           <p className="mt-1 text-sm text-slate-600">
-            Adjust benefit and cost multipliers for low, expected, and high
-            cases.
+            Adjust benefit and cost multipliers for low, expected, and high cases.
           </p>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-3">

@@ -109,7 +109,7 @@ export default function CharterWorkspace({
       ...prev,
       charter: {
         ...prev.charter,
-        [field]: value,
+        value,
       },
     }));
   };
@@ -127,35 +127,7 @@ export default function CharterWorkspace({
   };
 
   const handleRefreshTextFromSections = () => {
-    const refreshedText = charterSectionsToText(
-      {
-        backgroundBusinessNeed:
-          charter.backgroundBusinessNeed ||
-          previewPayload.backgroundBusinessNeed,
-        problemStatement:
-          charter.problemStatement || previewPayload.problemStatement,
-        projectObjectives:
-          charter.projectObjectives || previewPayload.projectObjectives,
-        scopeSummary: charter.scopeSummary || previewPayload.scopeSummary,
-        keyStakeholders:
-          charter.keyStakeholders || previewPayload.keyStakeholders,
-        timelineMilestones:
-          charter.timelineMilestones || previewPayload.timelineMilestones,
-        assumptions: charter.assumptions || previewPayload.assumptions,
-        constraints: charter.constraints || previewPayload.constraints,
-        risksDependencies:
-          charter.risksDependencies || previewPayload.risksDependencies,
-        successCriteria:
-          charter.successCriteria || previewPayload.successCriteria,
-        initialValueHypothesis:
-          charter.initialValueHypothesis ||
-          previewPayload.initialValueHypothesis,
-        recommendedNextSteps:
-          charter.recommendedNextSteps ||
-          previewPayload.recommendedNextSteps,
-      },
-      basics.title || ""
-    );
+    const refreshedText = charterSectionsToText(mergedSections, basics.title || "");
 
     setProjectData((prev) => ({
       ...prev,
@@ -185,7 +157,7 @@ export default function CharterWorkspace({
         { label: "AI Refinement Ready", tone: "orange" },
       ]}
       title="Project Charter Workspace"
-      description="Generate a structured charter from Project Basics and Ideation content, refine the sections, and prepare a copy-ready charter that can later be exported."
+      description="Generate a structured charter from Project Basics and Ideation content, refine the sections, and prepare a copy-ready charter."
       actions={
         <>
           <button
@@ -221,13 +193,13 @@ export default function CharterWorkspace({
         detail: `${completion.completed} of ${completion.total} tracked charter fields completed`,
         secondaryLabel: "Why this matters",
         secondaryText:
-          "The project charter becomes the source-of-truth document for your planning prompts, value story, cost story, and final outputs.",
+          "The project charter becomes the source-of-truth document for planning prompts, value story, cost story, and final outputs.",
       }}
       left={
         <>
           <SectionCard
             title="Generated charter sections"
-            subtitle="Use the source project information as your baseline, then refine the section content below."
+            subtitle="Use project information as your baseline, then refine each section."
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <button
@@ -250,10 +222,7 @@ export default function CharterWorkspace({
             <div className="mt-6 grid gap-5">
               <CharterSectionEditor
                 label="Background / Business Need"
-                value={
-                  charter.backgroundBusinessNeed ||
-                  previewPayload.backgroundBusinessNeed
-                }
+                value={mergedSections.backgroundBusinessNeed}
                 onChange={(e) =>
                   handleCharterChange(
                     "backgroundBusinessNeed",
@@ -265,7 +234,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Problem Statement"
-                value={charter.problemStatement || previewPayload.problemStatement}
+                value={mergedSections.problemStatement}
                 onChange={(e) =>
                   handleCharterChange("problemStatement", e.target.value)
                 }
@@ -274,9 +243,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Project Objectives"
-                value={
-                  charter.projectObjectives || previewPayload.projectObjectives
-                }
+                value={mergedSections.projectObjectives}
                 onChange={(e) =>
                   handleCharterChange("projectObjectives", e.target.value)
                 }
@@ -285,7 +252,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Scope Summary"
-                value={charter.scopeSummary || previewPayload.scopeSummary}
+                value={mergedSections.scopeSummary}
                 onChange={(e) =>
                   handleCharterChange("scopeSummary", e.target.value)
                 }
@@ -294,9 +261,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Key Stakeholders"
-                value={
-                  charter.keyStakeholders || previewPayload.keyStakeholders
-                }
+                value={mergedSections.keyStakeholders}
                 onChange={(e) =>
                   handleCharterChange("keyStakeholders", e.target.value)
                 }
@@ -305,10 +270,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Timeline / Milestones"
-                value={
-                  charter.timelineMilestones ||
-                  previewPayload.timelineMilestones
-                }
+                value={mergedSections.timelineMilestones}
                 onChange={(e) =>
                   handleCharterChange("timelineMilestones", e.target.value)
                 }
@@ -317,7 +279,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Assumptions"
-                value={charter.assumptions || previewPayload.assumptions}
+                value={mergedSections.assumptions}
                 onChange={(e) =>
                   handleCharterChange("assumptions", e.target.value)
                 }
@@ -326,7 +288,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Constraints"
-                value={charter.constraints || previewPayload.constraints}
+                value={mergedSections.constraints}
                 onChange={(e) =>
                   handleCharterChange("constraints", e.target.value)
                 }
@@ -335,10 +297,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Risks / Dependencies"
-                value={
-                  charter.risksDependencies ||
-                  previewPayload.risksDependencies
-                }
+                value={mergedSections.risksDependencies}
                 onChange={(e) =>
                   handleCharterChange("risksDependencies", e.target.value)
                 }
@@ -347,9 +306,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Success Criteria"
-                value={
-                  charter.successCriteria || previewPayload.successCriteria
-                }
+                value={mergedSections.successCriteria}
                 onChange={(e) =>
                   handleCharterChange("successCriteria", e.target.value)
                 }
@@ -358,10 +315,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Initial Value Hypothesis"
-                value={
-                  charter.initialValueHypothesis ||
-                  previewPayload.initialValueHypothesis
-                }
+                value={mergedSections.initialValueHypothesis}
                 onChange={(e) =>
                   handleCharterChange(
                     "initialValueHypothesis",
@@ -373,10 +327,7 @@ export default function CharterWorkspace({
 
               <CharterSectionEditor
                 label="Recommended Next Steps"
-                value={
-                  charter.recommendedNextSteps ||
-                  previewPayload.recommendedNextSteps
-                }
+                value={mergedSections.recommendedNextSteps}
                 onChange={(e) =>
                   handleCharterChange(
                     "recommendedNextSteps",
@@ -432,7 +383,7 @@ export default function CharterWorkspace({
           onCopyPrompt={handleCopyCharter}
           copyStatus={copyStatus}
           responseTitle="Paste AI refinement response"
-          responseSubtitle="Store the refined charter response or notes here until you decide how to apply them."
+          responseSubtitle="Store the refined charter response or notes here."
           responseValue={charter.aiResponse}
           onResponseChange={(e) =>
             handleCharterChange("aiResponse", e.target.value)
@@ -453,19 +404,19 @@ D. Suggested next actions`}
           helperSteps={[
             {
               title: "Step 1",
-              body: "Generate the charter from Project Basics and Ideation if you haven’t done that yet.",
+              body: "Generate the charter from Project Basics and Ideation.",
             },
             {
               title: "Step 2",
-              body: "Edit the individual charter sections until they are sponsor-ready and practical.",
+              body: "Edit the individual charter sections until they are practical and sponsor-ready.",
             },
             {
               title: "Step 3",
-              body: "Use the AI refinement prompt if you want an AI partner to improve clarity while preserving known facts.",
+              body: "Use the AI refinement prompt if you want to improve clarity.",
             },
             {
               title: "Step 4",
-              body: "Refresh and copy the charter text once the draft is strong enough to feed Plan Studio.",
+              body: "Refresh and copy the charter text once ready.",
             },
           ]}
         />
