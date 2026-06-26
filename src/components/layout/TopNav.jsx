@@ -21,6 +21,9 @@ export default function TopNav({
   onNavigate,
   onSave,
   onSelectSlot,
+  onRenameSlot,
+  onClearSlot,
+  onDuplicateSlot,
   activeSlot = 1,
   slotSummaries = [],
   saveStatus = "Ready",
@@ -44,14 +47,44 @@ export default function TopNav({
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-            <button
-              type="button"
-              onClick={onSave}
-              className="rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
-            >
-              Save to Slot {activeSlot}
-            </button>
+          <div className="flex flex-col gap-2 xl:items-end">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+              <button
+                type="button"
+                onClick={onSave}
+                className="rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
+              >
+                Save to Slot {activeSlot}
+              </button>
+
+              <button
+                type="button"
+                onClick={onRenameSlot}
+                className="rounded-full border border-sky-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-sky-50"
+              >
+                Rename Slot
+              </button>
+
+              <button
+                type="button"
+                onClick={onDuplicateSlot}
+                className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
+              >
+                Duplicate Slot
+              </button>
+
+              <button
+                type="button"
+                onClick={onClearSlot}
+                className="rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 transition hover:bg-orange-100"
+              >
+                Clear Slot
+              </button>
+
+              <div className="rounded-full border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-medium text-orange-700">
+                {saveStatus}
+              </div>
+            </div>
 
             <div className="flex flex-wrap gap-2">
               {slotSummaries.map((slot) => {
@@ -64,27 +97,30 @@ export default function TopNav({
                     onClick={() => onSelectSlot(slot.id)}
                     title={
                       slot.isEmpty
-                        ? `Slot ${slot.id} is empty`
-                        : `${slot.projectTitle} • ${formatSavedAt(slot.savedAt)}`
+                        ? `${slot.slotName} is empty`
+                        : `${slot.slotName}: ${slot.projectTitle} · ${formatSavedAt(
+                            slot.savedAt
+                          )}`
                     }
                     className={[
-                      "min-w-[98px] rounded-2xl border px-3 py-2 text-left transition",
+                      "min-w-[120px] rounded-2xl border px-3 py-2 text-left transition",
                       isActive
                         ? "border-sky-300 bg-sky-100 text-sky-800"
                         : "border-sky-200 bg-sky-50 text-slate-700 hover:bg-sky-100",
                     ].join(" ")}
                   >
-                    <div className="text-xs font-semibold">Slot {slot.id}</div>
+                    <div className="truncate text-xs font-semibold">
+                      {slot.slotName}
+                    </div>
                     <div className="mt-1 truncate text-[11px] text-slate-600">
                       {slot.isEmpty ? "Empty" : slot.projectTitle}
+                    </div>
+                    <div className="mt-1 truncate text-[10px] text-slate-500">
+                      {formatSavedAt(slot.savedAt)}
                     </div>
                   </button>
                 );
               })}
-            </div>
-
-            <div className="rounded-full border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-medium text-orange-700">
-              {saveStatus}
             </div>
           </div>
         </div>
