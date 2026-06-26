@@ -1,20 +1,28 @@
 import {
-  cloneProjectData,
   createBlankProjectData,
   getProjectTitle,
   normalizeProjectData,
 } from "./projectDataHelpers";
 
-const STORAGE_KEY = "project-builder-workspace-v2";
+const STORAGE_KEY = "project-builder-workspace-v3";
 
 function canUseStorage() {
   return typeof window !== "undefined" && !!window.localStorage;
 }
 
+function createDefaultSlotMeta() {
+  return {
+    "1": { slotName: "Slot 1" },
+    "2": { slotName: "Slot 2" },
+    "3": { slotName: "Slot 3" },
+  };
+}
+
 export function createEmptyStorageState() {
   return {
-    version: 2,
+    version: 3,
     lastActiveSlot: 1,
+    slotMeta: createDefaultSlotMeta(),
     slots: {
       "1": null,
       "2": null,
@@ -31,8 +39,12 @@ function normalizeStorageState(parsedState) {
   }
 
   const normalized = {
-    version: 2,
+    version: 3,
     lastActiveSlot: Number(parsedState.lastActiveSlot) || 1,
+    slotMeta: {
+      ...createDefaultSlotMeta(),
+      ...(parsedState.slotMeta || {}),
+    },
     slots: {
       "1": null,
       "2": null,
@@ -126,9 +138,80 @@ export function loadProjectFromSlot(slotId) {
 
 export function clearProjectSlot(slotId) {
   const state = readStorageState();
-  state.slots[String(slotId)] = null;
+  const normalizedSlotId = String(slotId || 1);
+
+  state.slots[normalizedSlotId] = null;
+  state.lastActiveSlot = Number(slotId) || 1;
+
   writeStorageState(state);
   return readStorageState();
+}
+
+export function renameProjectSlot(slotId, slotName) {
+  const state = readStorageState();
+  const normalizedSlotId = String(slotId || 1);
+  const cleanedName =
+    slotName && String(slotName).trim()
+      ? String(slotName).trim()
+      : `Slot ${normalizedSlotId}`;
+
+  state.slotMeta[normalizedSlotId] = {
+    ...(state.slotMeta[normalizedSlotId] || {}),
+    slotName: cleanedName,
+  };
+
+  writeStorageState(state);
+  return readStorageState();
+}
+
+export function duplicateProjectSlot(sourceSlotId, targetSlotId) {
+  const state = readStorageState();
+  const sourceId = String(sourceSlotId || 1);
+  const targetId = String(targetSlotId || 1);
+  const sourceSlot = state.slots[sourceId];
+
+  if (!sourceSlot?.projectData) {
+    return {
+      ok: false,
+      message: `Slot ${sourceId} has no project to duplicate.`,
+      state,
+    };
+  }
+
+  const normalizedProjectData = normalizeProjectData(sourceSlot.projectData);
+
+  state.slots[targetId] = {
+    savedAt: new Date().toISOString(),
+    projectTitle: getProjectTitle(normalizedProjectData),
+    activeTab: sourceSlot.activeTab || "home",
+    projectData: normalizedProjectData,
+  };
+
+  state.slotMeta[targetId] = {
+    ...(state.slotMeta[targetId] || {}),
+    slotName: `${state.slotMeta[sourceId]?.slotName || `Slot ${sourceId}`} Copy`,
+  };
+
+  state.lastActiveSlot = Number(targetId) || 1;
+
+  writeStorageState(state);
+
+  return {
+    ok: true,
+    message: `Duplicated Slot ${sourceId} to Slot ${targetId}.`,
+    state: readStorageState(),
+  };
+}
+
+export function getFirstAvailableSlot(excludeSlotId) {
+  const state = readStorageState();
+  const excluded = String(excludeSlotId || "");
+
+  const available = ["1", "2", "3"].find((slotId) => {
+    return slotId !== excluded && !state.slots[slotId];
+  });
+
+  return available ? Number(available) : null;
 }
 
 export function getSlotSummaries() {
@@ -136,9 +219,11 @@ export function getSlotSummaries() {
 
   return [1, 2, 3].map((slotId) => {
     const slot = state.slots[String(slotId)];
+    const meta = state.slotMeta[String(slotId)] || {};
 
     return {
       id: slotId,
+      slotName: meta.slotName || `Slot ${slotId}`,
       isEmpty: !slot,
       projectTitle: slot?.projectTitle || "Empty slot",
       savedAt: slot?.savedAt || null,
@@ -177,8 +262,4 @@ export function createNewProjectForSlot(slotId) {
     projectData: createBlankProjectData(),
     slotSummaries: getSlotSummaries(),
   };
-}
-
-export function cloneStoredProject(projectData) {
-  return cloneProjectData(normalizeProjectData(projectData));
 }
