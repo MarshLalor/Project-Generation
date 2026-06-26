@@ -2,12 +2,17 @@ import React, { useMemo } from "react";
 import SectionCard from "../common/SectionCard";
 import OutputSummaryCard from "./OutputSummaryCard";
 import {
+  calculateRoleWeightedLabor,
   calculateScenarioSummary,
+  createRoleSavingsRow,
   ensureBusinessCaseState,
   formatCurrency,
   formatNumber,
 } from "../../utils/calculationHelpers";
-import { buildCalculatorSuggestionFromAssumptions } from "../../utils/assumptionCalculationHelpers";
+import {
+  buildCalculatorSuggestionFromAssumptions,
+  buildRoleSavingsRowsFromAssumptions,
+} from "../../utils/assumptionCalculationHelpers";
 
 function FieldLabel({ label, helper }) {
   return (
@@ -60,6 +65,11 @@ export default function BusinessCaseCalculatorSection({
     [businessCase]
   );
 
+  const roleWeightedLabor = useMemo(
+    () => calculateRoleWeightedLabor(businessCase.roleSavings.items),
+    [businessCase.roleSavings.items]
+  );
+
   const assumptionSuggestion = useMemo(
     () => buildCalculatorSuggestionFromAssumptions(projectData),
     [projectData]
@@ -105,6 +115,94 @@ export default function BusinessCaseCalculatorSection({
     }));
   };
 
+  const updateRoleSavingsRow = (id, field, value) => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      roleSavings: {
+        ...prev.roleSavings,
+        items: prev.roleSavings.items.map((row) =>
+          row.id === id ? { ...row, [field]: value } : row
+        ),
+      },
+    }));
+  };
+
+  const addRoleSavingsRow = () => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      roleSavings: {
+        ...prev.roleSavings,
+        items: [...prev.roleSavings.items, createRoleSavingsRow()],
+      },
+    }));
+  };
+
+  const removeRoleSavingsRow = (id) => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      roleSavings: {
+        ...prev.roleSavings,
+        items: prev.roleSavings.items.filter((row) => row.id !== id),
+      },
+    }));
+  };
+
+  const updateRoleSavingsNotes = (value) => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      roleSavings: {
+        ...prev.roleSavings,
+        notes: value,
+      },
+    }));
+  };
+
+  const handleImportRolesFromAssumptions = () => {
+    const importedRows = buildRoleSavingsRowsFromAssumptions(projectData);
+
+    updateBusinessCase((prev) => ({
+      ...prev,
+      roleSavings: {
+        ...prev.roleSavings,
+        items: importedRows.length ? importedRows : prev.roleSavings.items,
+        notes: importedRows.length
+          ? `Imported ${importedRows.length} role row(s) from the Assumptions workspace. Add annual hours saved by role to calculate role-weighted labor savings.`
+          : "No usable labor rate rows were found in the Assumptions workspace.",
+      },
+    }));
+  };
+
+  const handleApplyRoleWeightedLabor = () => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      valueInputs: {
+        ...prev.valueInputs,
+        annualSavedHours: roleWeightedLabor.totalAnnualHoursSaved
+          ? String(Math.round(roleWeightedLabor.totalAnnualHoursSaved))
+          : prev.valueInputs.annualSavedHours,
+        weightedHourlyRate: roleWeightedLabor.weightedHourlyRate
+          ? String(Math.round(roleWeightedLabor.weightedHourlyRate))
+          : prev.valueInputs.weightedHourlyRate,
+        notes: [
+          prev.valueInputs.notes,
+          "",
+          "Role-Weighted Labor Model Applied:",
+          `Total annual hours saved: ${Math.round(
+            roleWeightedLabor.totalAnnualHoursSaved
+          )}`,
+          `Weighted hourly rate: ${Math.round(
+            roleWeightedLabor.weightedHourlyRate
+          )}`,
+          `Annual labor savings: ${formatCurrency(
+            roleWeightedLabor.totalAnnualLaborSavings
+          )}`,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      },
+    }));
+  };
+
   const handleApplyAssumptions = () => {
     updateBusinessCase((prev) => ({
       ...prev,
@@ -131,15 +229,13 @@ export default function BusinessCaseCalculatorSection({
   return (
     <SectionCard
       title="Scenario Calculator"
-      subtitle="Use lightweight inputs to create low, expected, and high business case scenarios. Assumptions can now auto-populate key calculator inputs."
+      subtitle="Use lightweight inputs, assumption-based suggestions, and role-weighted labor modeling to create low, expected, and high business case scenarios."
     >
       <div className="space-y-8">
         <div className="rounded-3xl border border-orange-200 bg-orange-50 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h3 className="text-base font-semibold text-orange-700">
-                Assumption-Based Suggestions
-              </h3>
+              <h3 className="text-base font-semibold text-orange-700           </h3>
               <p className="mt-1 text-sm leading-6 text-slate-700">
                 Use the assumptions register to estimate annual saved hours,
                 blended hourly rate, and internal labor cost.
@@ -180,6 +276,157 @@ export default function BusinessCaseCalculatorSection({
                   : "No internal-labor-cost suggestion available."
               }
             />
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-sky-100 bg-sky-50/60 p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-slate-900">
+                Role-Weighted Labor Model
+              </h3>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                Estimate annual labor savings by role. Import roles from labor
+                rate assumptions, enter annual hours saved by role, then apply
+                the weighted result to the main value inputs.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleImportRolesFromAssumptions}
+                className="rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50"
+              >
+                Import Roles
+              </button>
+
+              <button
+                type="button"
+                onClick={addRoleSavingsRow}
+                className="rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50"
+              >
+                Add Role
+              </button>
+
+              <button
+                type="button"
+                onClick={handleApplyRoleWeightedLabor}
+                className="rounded-2xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
+              >
+                Apply Role Model
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <OutputSummaryCard
+              title="Total Role Hours Saved"
+              value={formatNumber(roleWeightedLabor.totalAnnualHoursSaved)}
+              accent="orange"
+            />
+            <OutputSummaryCard
+              title="Weighted Hourly Rate"
+              value={formatCurrency(roleWeightedLabor.weightedHourlyRate)}
+            />
+            <OutputSummaryCard
+              title="Role-Based Annual Labor Savings"
+              value={formatCurrency(roleWeightedLabor.totalAnnualLaborSavings)}
+              accent="orange"
+            />
+          </div>
+
+          <div className="mt-5 space-y-4">
+            {businessCase.roleSavings.items.length === 0 ? (
+              <div className="rounded-2xl border border-sky-100 bg-white p-4">
+                <p className="text-sm text-slate-700">
+                  No role rows yet. Import roles from assumptions or add a role
+                  manually.
+                </p>
+              </div>
+            ) : (
+              businessCase.roleSavings.items.map((row) => (
+                <div
+                  key={row.id}
+                  className="rounded-2xl border border-sky-100 bg-white p-4"
+                >
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div>
+                      <FieldLabel label="Role" />
+                      <TextInput
+                        value={row.role}
+                        onChange={(e) =>
+                          updateRoleSavingsRow(row.id, "role", e.target.value)
+                        }
+                        placeholder="Example: Paid Search Manager"
+                      />
+                    </div>
+
+                    <div>
+                      <FieldLabel label="Hourly / Fully Loaded Rate" />
+                      <TextInput
+                        value={row.hourlyRate}
+                        onChange={(e) =>
+                          updateRoleSavingsRow(
+                            row.id,
+                            "hourlyRate",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Example: 65"
+                      />
+                    </div>
+
+                    <div>
+                      <FieldLabel label="Annual Hours Saved" />
+                      <TextInput
+                        value={row.annualHoursSaved}
+                        onChange={(e) =>
+                          updateRoleSavingsRow(
+                            row.id,
+                            "annualHoursSaved",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Example: 300"
+                      />
+                    </div>
+
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={() => removeRoleSavingsRow(row.id)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    <div className="md:col-span-2 xl:col-span-4">
+                      <FieldLabel label="Notes" />
+                      <TextArea
+                        value={row.notes}
+                        onChange={(e) =>
+                          updateRoleSavingsRow(row.id, "notes", e.target.value)
+                        }
+                        placeholder="Add role-specific context or source notes."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+
+            <div>
+              <FieldLabel label="Role Model Notes" />
+              <TextArea
+                value={businessCase.roleSavings.notes}
+                onChange={(e) => updateRoleSavingsNotes(e.target.value)}
+                placeholder="Add notes about role weighting, assumptions, or confidence."
+                rows={3}
+              />
+            </div>
           </div>
         </div>
 
@@ -355,7 +602,7 @@ export default function BusinessCaseCalculatorSection({
               <FieldLabel label="Support / Launch Cost" />
               <TextInput
                 value={businessCase.costInputs.supportCost}
-                onChange={(e) => lue)}
+                onChange={(e) => updateCostInput("supportCost", e.target.value)}
                 placeholder="Example: 5000"
               />
             </div>
@@ -484,6 +731,11 @@ export default function BusinessCaseCalculatorSection({
             <OutputSummaryCard
               title="Base Annual Labor Savings"
               value={formatCurrency(summary.baseValue.laborSavings)}
+              accent="orange"
+            />
+            <OutputSummaryCard
+              title="Role-Based Annual Labor Savings"
+              value={formatCurrency(roleWeightedLabor.totalAnnualLaborSavings)}
               accent="orange"
             />
             <OutputSummaryCard
