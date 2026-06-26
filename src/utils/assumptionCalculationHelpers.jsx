@@ -1,3 +1,5 @@
+import { createRoleSavingsRow } from "./calculationHelpers";
+
 function toNumber(value) {
   if (value === null || value === undefined) return 0;
 
@@ -122,6 +124,7 @@ function isSavingsEffortRow(row) {
   return (
     combined.includes("save") ||
     combined.includes("saved") ||
+    combined.includes("savings") ||
     combined.includes("reduction") ||
     combined.includes("reduce") ||
     combined.includes("automation") ||
@@ -233,6 +236,29 @@ function buildAssumptionNotes({
       ? `- Open questions from assumptions register: ${openQuestions}`
       : "- No open questions captured in the assumptions register.",
   ].join("\n");
+}
+
+export function buildRoleSavingsRowsFromAssumptions(projectData) {
+  const assumptions = projectData?.assumptions || {};
+  const roles = assumptions?.laborRates?.roles || [];
+  const burdenFactor = getBurdenFactor(assumptions);
+
+  const roleRows = roles
+    .filter(rowHasContent)
+    .map((row) => {
+      const rate = getBestHourlyRate(row, burdenFactor);
+
+      return createRoleSavingsRow({
+        role: row.role || "Unnamed Role",
+        hourlyRate: rate > 0 ? String(Math.round(rate)) : "",
+        annualHoursSaved: "",
+        notes: row.source
+          ? `Imported from assumptions register. Source: ${row.source}`
+          : "Imported from assumptions register.",
+      });
+    });
+
+  return roleRows;
 }
 
 export function buildCalculatorSuggestionFromAssumptions(projectData) {

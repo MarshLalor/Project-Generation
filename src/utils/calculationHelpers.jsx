@@ -1,4 +1,3 @@
-
 export function toNumber(value) {
   if (value === null || value === undefined) return 0;
 
@@ -30,6 +29,18 @@ export function formatNumber(value) {
   }).format(number);
 }
 
+export function createRoleSavingsRow(overrides = {}) {
+  return {
+    id:
+      overrides.id ||
+      `role-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    role: overrides.role || "",
+    hourlyRate: overrides.hourlyRate || "",
+    annualHoursSaved: overrides.annualHoursSaved || "",
+    notes: overrides.notes || "",
+  };
+}
+
 export function createDefaultBusinessCaseState() {
   return {
     valueInputs: {
@@ -52,6 +63,10 @@ export function createDefaultBusinessCaseState() {
       recurringSoftwareCost: "",
       recurringSupportCost: "",
       contingencyPercent: "",
+      notes: "",
+    },
+    roleSavings: {
+      items: [],
       notes: "",
     },
     scenarios: {
@@ -89,6 +104,13 @@ export function ensureBusinessCaseState(businessCase) {
       ...defaults.costInputs,
       ...(businessCase?.costInputs || {}),
     },
+    roleSavings: {
+      ...defaults.roleSavings,
+      ...(businessCase?.roleSavings || {}),
+      items: Array.isArray(businessCase?.roleSavings?.items)
+        ? businessCase.roleSavings.items
+        : defaults.roleSavings.items,
+    },
     scenarios: {
       low: {
         ...defaults.scenarios.low,
@@ -103,6 +125,52 @@ export function ensureBusinessCaseState(businessCase) {
         ...(businessCase?.scenarios?.high || {}),
       },
     },
+  };
+}
+
+export function calculateRoleWeightedLabor(roleSavingsItems = []) {
+  const populated = roleSavingsItems.filter((row) => {
+    return (
+      row &&
+      (String(row.role || "").trim() ||
+        toNumber(row.hourlyRate) > 0 ||
+        toNumber(row.annualHoursSaved) > 0)
+    );
+  });
+
+  const rows = populated.map((row) => {
+    const hourlyRate = toNumber(row.hourlyRate);
+    const annualHoursSaved = toNumber(row.annualHoursSaved);
+    const annualSavings = hourlyRate * annualHoursSaved;
+
+    return {
+      ...row,
+      hourlyRate,
+      annualHoursSaved,
+      annualSavings,
+    };
+  });
+
+  const totalAnnualHoursSaved = rows.reduce(
+    (sum, row) => sum + row.annualHoursSaved,
+    0
+  );
+
+  const totalAnnualLaborSavings = rows.reduce(
+    (sum, row) => sum + row.annualSavings,
+    0
+  );
+
+  const weightedHourlyRate =
+    totalAnnualHoursSaved > 0
+      ? totalAnnualLaborSavings / totalAnnualHoursSaved
+      : 0;
+
+  return {
+    rows,
+    totalAnnualHoursSaved,
+    totalAnnualLaborSavings,
+    weightedHourlyRate,
   };
 }
 
@@ -154,6 +222,9 @@ export function calculateBaseCost(costInputs = {}) {
 export function calculateScenarioSummary(businessCase) {
   const normalized = ensureBusinessCaseState(businessCase);
 
+  const roleWeightedLabor = calculateRoleWeightedLabor(
+    normalized.roleSavings.items
+  );
   const baseValue = calculateBaseValue(normalized.valueInputs);
   const baseCost = calculateBaseCost(normalized.costInputs);
 
@@ -188,6 +259,7 @@ export function calculateScenarioSummary(businessCase) {
   });
 
   return {
+    roleWeightedLabor,
     baseValue,
     baseCost,
     scenarios,
