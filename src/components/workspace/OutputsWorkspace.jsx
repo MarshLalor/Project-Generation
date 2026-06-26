@@ -11,6 +11,11 @@ import {
   buildExecutiveSummaryPrompt,
   parseExecutiveSummaryResponse,
 } from "../../utils/executiveSummaryHelpers";
+import {
+  createExportFileName,
+  downloadMarkdownFile,
+  downloadTextFile,
+} from "../../utils/exportHelpers";
 
 function OutputPreviewCard({ title, value, onCopy, copyLabel, accent = "sky" }) {
   const borderClasses =
@@ -84,6 +89,23 @@ function FieldLabel({ label, helper }) {
   );
 }
 
+function DownloadButton({ label, onClick, primary = false }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "rounded-2xl px-5 py-3 text-left text-sm transition",
+        primary
+          ? "bg-orange-500 font-semibold text-white hover:bg-orange-600"
+          : "border border-sky-200 bg-white font-medium text-slate-700 hover:bg-sky-50",
+      ].join(" ")}
+    >
+      {label}
+    </button>
+  );
+}
+
 export default function OutputsWorkspace({
   projectData,
   setProjectData,
@@ -92,6 +114,7 @@ export default function OutputsWorkspace({
 }) {
   const [copyState, setCopyState] = useState("idle");
   const [promptCopyStatus, setPromptCopyStatus] = useState("idle");
+  const [downloadStatus, setDownloadStatus] = useState("No recent download.");
 
   const outputs = useMemo(() => buildOutputsPayload(projectData), [projectData]);
 
@@ -113,7 +136,7 @@ export default function OutputsWorkspace({
       ...prev,
       executiveSummary: {
         ...prev.executiveSummary,
-        value,
+        [field]: value,
       },
     }));
   };
@@ -164,6 +187,25 @@ export default function OutputsWorkspace({
     }
   };
 
+  const downloadOutput = (sectionName, content, extension = "txt") => {
+    const fileName = createExportFileName(projectData, sectionName);
+
+    if (extension === "md") {
+      downloadMarkdownFile({
+        content,
+        fileName,
+      });
+    } else {
+      downloadTextFile({
+        content,
+        fileName,
+      });
+    }
+
+    setDownloadStatus(`Downloaded ${sectionName}`);
+    window.setTimeout(() => setDownloadStatus("No recent download."), 2200);
+  };
+
   const handleRefreshOutputs = () => {
     setProjectData((prev) => ({ ...prev }));
   };
@@ -172,11 +214,11 @@ export default function OutputsWorkspace({
     <BuilderLayout
       badges={[
         { label: "Outputs Studio", tone: "blue" },
-        { label: "Executive Summary", tone: "softBlue" },
-        { label: "Scenario-Aware", tone: "orange" },
+        { label: "Real Downloads", tone: "softBlue" },
+        { label: "Export-Ready Foundation", tone: "orange" },
       ]}
       title="Outputs Workspace"
-      description="Compile the project charter, plan summary, value summary, cost summary, scenario summary, assumptions register, open questions, and sponsor-ready executive summary."
+      description="Compile and download the executive summary, project charter, plan summary, value summary, cost summary, scenario summary, assumptions register, open questions, and full output pack."
       actions={
         <>
           <button
@@ -210,9 +252,9 @@ export default function OutputsWorkspace({
         total: readiness.total,
         metricLabel: "Deliverable completeness",
         detail: `${readiness.completed} of ${readiness.total} core outputs ready`,
-        secondaryLabel: "Executive-ready package",
+        secondaryLabel: "Export-ready package",
         secondaryText:
-          "The final output package now includes a sponsor-ready executive summary, scenario summary, assumptions register, and validation gaps.",
+          "The final package can now be copied or downloaded as text/markdown files. This prepares the app for future DOCX/PDF export.",
       }}
       left={
         <>
@@ -291,7 +333,7 @@ export default function OutputsWorkspace({
                 <TextArea
                   value={executiveSummary.keyCosts || ""}
                   onChange={(e) =>
-                    updateExecutiveSummaryField("keyCosts", e.target.value)
+                    updateExecutiveSummaryFields", e.target.value)
                   }
                   rows={4}
                   placeholder="Summarize investment, Year 1 cost, recurring cost, and cost confidence."
@@ -423,6 +465,93 @@ export default function OutputsWorkspace({
               </div>
             </div>
           </SectionCard>
+
+          <SectionCard
+            title="Download outputs"
+            subtitle="Download individual deliverables or the full output pack as text or markdown files."
+          >
+            <div className="grid gap-3">
+              <DownloadButton
+                label="Download Executive Summary (.txt)"
+                onClick={() =>
+                  downloadOutput(
+                    "Executive Summary",
+                    outputs.executiveSummary,
+                    "txt"
+                  )
+                }
+              />
+
+              <DownloadButton
+                label="Download Charter (.txt)"
+                onClick={() =>
+                  downloadOutput("Project Charter", outputs.charterText, "txt")
+                }
+              />
+
+              <DownloadButton
+                label="Download Project Plan Summary (.txt)"
+                onClick={() =>
+                  downloadOutput(
+                    "Project Plan Summary",
+                    outputs.projectPlanSummary,
+                    "txt"
+                  )
+                }
+              />
+
+              <DownloadButton
+                label="Download Value Summary (.txt)"
+                onClick={() =>
+                  downloadOutput("Value Summary", outputs.valueSummary, "txt")
+                }
+              />
+
+              <DownloadButton
+                label="Download Cost Summary (.txt)"
+                onClick={() =>
+                  downloadOutput("Cost Summary", outputs.costSummary, "txt")
+                }
+              />
+
+              <DownloadButton
+                label="Download Scenario Summary (.txt)"
+                onClick={() =>
+                  downloadOutput(
+                    "Scenario Summary",
+                    outputs.scenarioSummary,
+                    "txt"
+                  )
+                }
+              />
+
+              <DownloadButton
+                label="Download Assumptions Register (.txt)"
+                onClick={() =>
+                  downloadOutput(
+                    "Assumptions Register",
+                    outputs.assumptionsRegister,
+                    "txt"
+                  )
+                }
+              />
+
+              <DownloadButton
+                label="Download Full Output Pack (.md)"
+                primary
+                onClick={() =>
+                  downloadOutput("Full Output Pack", outputs.fullOutputPack, "md")
+                }
+              />
+
+              <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
+                <p className="text-sm font-semibold text-orange-700">
+                  Download status
+                </p>
+                <p className="mt-2 text-sm text-slate-700">{downloadStatus}</p>
+              </div>
+            </div>
+          </SectionCard>
         </>
       }
       right={
@@ -472,7 +601,7 @@ H. Recommended Next Steps`}
               },
               {
                 title: "Step 4",
-                body: "Review and edit the fields before copying the full output pack.",
+                body: "Review and edit the fields before copying or downloading the full output pack.",
               },
             ]}
           />
