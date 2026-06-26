@@ -13,6 +13,10 @@ import {
   buildCalculatorSuggestionFromAssumptions,
   buildRoleSavingsRowsFromAssumptions,
 } from "../../utils/assumptionCalculationHelpers";
+import {
+  buildTemplateApplicationNotes,
+  scenarioTemplates,
+} from "../../utils/scenarioTemplateHelpers";
 
 function FieldLabel({ label, helper }) {
   return (
@@ -226,16 +230,108 @@ export default function BusinessCaseCalculatorSection({
     }));
   };
 
+  const handleApplyScenarioTemplate = (template) => {
+    const templateNotes = buildTemplateApplicationNotes(template);
+
+    updateBusinessCase((prev) => ({
+      ...prev,
+      valueInputs: {
+        ...prev.valueInputs,
+        notes: [
+          prev.valueInputs.notes,
+          "",
+          templateNotes,
+          template.valueNotes,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      },
+      costInputs: {
+        ...prev.costInputs,
+        notes: [
+          prev.costInputs.notes,
+          "",
+          templateNotes,
+          template.costNotes,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      },
+      scenarios: {
+        low: {
+          ...prev.scenarios.low,
+          ...template.scenarios.low,
+        },
+        expected: {
+          ...prev.scenarios.expected,
+          ...template.scenarios.expected,
+        },
+        high: {
+          ...prev.scenarios.high,
+          ...template.scenarios.high,
+        },
+      },
+    }));
+  };
+
   return (
     <SectionCard
       title="Scenario Calculator"
-      subtitle="Use lightweight inputs, assumption-based suggestions, and role-weighted labor modeling to create low, expected, and high business case scenarios."
+      subtitle="Use lightweight inputs, assumption-based suggestions, role-weighted labor modeling, and one-click scenario templates to create low, expected, and high business case scenarios."
     >
       <div className="space-y-8">
+        <div className="rounded-3xl border border-sky-100 bg-sky-50/60 p-5">
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">
+              Scenario Templates
+            </h3>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              Apply a template to quickly update low, expected, and high scenario
+              factors. You can still edit the factors manually afterward.
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {scenarioTemplates.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => handleApplyScenarioTemplate(template)}
+                className="rounded-3xl border border-sky-100 bg-white p-4 text-left transition hover:border-orange-200 hover:bg-orange-50"
+              >
+                <h4 className="text-sm font-semibold text-slate-900">
+                  {template.title}
+                </h4>
+                <p className="mt-2 text-sm leading-6 text-slate-600"        </p>
+
+                <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-slate-600">
+                  <div className="rounded-2xl bg-sky-50 p-2">
+                    <p className="font-semibold text-sky-700">Low</p>
+                    <p>B {template.scenarios.low.benefitFactor}</p>
+                    <p>C {template.scenarios.low.costFactor}</p>
+                  </div>
+                  <div className="rounded-2xl bg-orange-50 p-2">
+                    <p className="font-semibold text-orange-700">Exp</p>
+                    <p>B {template.scenarios.expected.benefitFactor}</p>
+                    <p>C {template.scenarios.expected.costFactor}</p>
+                  </div>
+                  <div className="rounded-2xl bg-sky-50 p-2">
+                    <p className="font-semibold text-sky-700">High</p>
+                    <p>B {template.scenarios.high.benefitFactor}</p>
+                    <p>C {template.scenarios.high.costFactor}</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="rounded-3xl border border-orange-200 bg-orange-50 p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h3 className="text-base font-semibold text-orange-700           </h3>
+              <h3 className="text-base font-semibold text-orange-700">
+                Assumption-Based Suggestions
+              </h3>
               <p className="mt-1 text-sm leading-6 text-slate-700">
                 Use the assumptions register to estimate annual saved hours,
                 blended hourly rate, and internal labor cost.
