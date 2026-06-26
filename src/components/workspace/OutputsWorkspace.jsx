@@ -1,11 +1,16 @@
 import React, { useMemo, useState } from "react";
 import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
+import PromptPanel from "./PromptPanel";
 import OutputSummaryCard from "./OutputSummaryCard";
 import {
   buildOutputsPayload,
   getOutputsReadiness,
 } from "../../utils/outputsHelpers";
+import {
+  buildExecutiveSummaryPrompt,
+  parseExecutiveSummaryResponse,
+} from "../../utils/executiveSummaryHelpers";
 
 function OutputPreviewCard({ title, value, onCopy, copyLabel, accent = "sky" }) {
   const borderClasses =
@@ -54,6 +59,31 @@ function StatusPill({ ready }) {
   );
 }
 
+function TextArea({ value, onChange, placeholder, rows = 4 }) {
+  return (
+    <textarea
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+    />
+  );
+}
+
+function FieldLabel({ label, helper }) {
+  return (
+    <div className="mb-2">
+      <label className="block text-sm font-semibold text-slate-900">
+        {label}
+      </label>
+      {helper ? (
+        <p className="mt-1 text-xs leading-5 text-slate-500">{helper}</p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function OutputsWorkspace({
   projectData,
   setProjectData,
@@ -61,6 +91,7 @@ export default function OutputsWorkspace({
   onBackToCost,
 }) {
   const [copyState, setCopyState] = useState("idle");
+  const [promptCopyStatus, setPromptCopyStatus] = useState("idle");
 
   const outputs = useMemo(() => buildOutputsPayload(projectData), [projectData]);
 
@@ -68,6 +99,59 @@ export default function OutputsWorkspace({
     () => getOutputsReadiness(projectData),
     [projectData]
   );
+
+  const executiveSummary = projectData.executiveSummary || {};
+
+  const executivePrompt = useMemo(() => {
+    return executiveSummary.promptText && executiveSummary.promptText.trim()
+      ? executiveSummary.promptText
+      : buildExecutiveSummaryPrompt(projectData, outputs);
+  }, [executiveSummary.promptText, projectData, outputs]);
+
+  const updateExecutiveSummaryField = (field, value) => {
+    setProjectData((prev) => ({
+      ...prev,
+      executiveSummary: {
+        ...prev.executiveSummary,
+        value,
+      },
+    }));
+  };
+
+  const buildAndSaveExecutivePrompt = () => {
+    const promptText = buildExecutiveSummaryPrompt(projectData, outputs);
+
+    setProjectData((prev) => ({
+      ...prev,
+      executiveSummary: {
+        ...prev.executiveSummary,
+        promptText,
+      },
+    }));
+  };
+
+  const handleCopyExecutivePrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(executivePrompt || "");
+      setPromptCopyStatus("copied");
+      window.setTimeout(() => setPromptCopyStatus("idle"), 1800);
+    } catch (error) {
+      setPromptCopyStatus("failed");
+      window.setTimeout(() => setPromptCopyStatus("idle"), 2200);
+    }
+  };
+
+  const handleParseExecutiveSummary = () => {
+    const parsed = parseExecutiveSummaryResponse(executiveSummary.aiResponse);
+
+    setProjectData((prev) => ({
+      ...prev,
+      executiveSummary: {
+        ...prev.executiveSummary,
+        ...parsed,
+      },
+    }));
+  };
 
   const copyText = async (text, label = "Copied") => {
     try {
@@ -88,11 +172,11 @@ export default function OutputsWorkspace({
     <BuilderLayout
       badges={[
         { label: "Outputs Studio", tone: "blue" },
-        { label: "Compiled Deliverables", tone: "softBlue" },
+        { label: "Executive Summary", tone: "softBlue" },
         { label: "Scenario-Aware", tone: "orange" },
       ]}
       title="Outputs Workspace"
-      description="Compile the project charter, plan summary, value summary, cost summary, scenario summary, assumptions register, and open questions into reusable outputs that are ready for future export."
+      description="Compile the project charter, plan summary, value summary, cost summary, scenario summary, assumptions register, open questions, and sponsor-ready executive summary."
       actions={
         <>
           <button
@@ -126,9 +210,9 @@ export default function OutputsWorkspace({
         total: readiness.total,
         metricLabel: "Deliverable completeness",
         detail: `${readiness.completed} of ${readiness.total} core outputs ready`,
-        secondaryLabel: "Output package",
+        secondaryLabel: "Executive-ready package",
         secondaryText:
-          "The final output package now includes the scenario summary, which makes the value and cost story easier to review with sponsors.",
+          "The final output package now includes a sponsor-ready executive summary, scenario summary, assumptions register, and validation gaps.",
       }}
       left={
         <>
@@ -150,10 +234,129 @@ export default function OutputsWorkspace({
           </SectionCard>
 
           <SectionCard
+            title="Executive summary fields"
+            subtitle="Use these fields to refine the sponsor-ready decision summary."
+          >
+            <div className="grid gap-5">
+              <div>
+                <FieldLabel label="Executive Summary" />
+                <TextArea
+                  value={executiveSummary.summaryText || ""}
+                  onChange={(e) =>
+                    updateExecutiveSummaryField("summaryText", e.target.value)
+                  }
+                  rows={5}
+                  placeholder="Concise sponsor-ready overview of the project, outcome, and business case."
+                />
+              </div>
+
+              <div>
+                <FieldLabel label="Decision Ask" />
+                <TextArea
+                  value={executiveSummary.decisionAsk || ""}
+                  onChange={(e) =>
+                    updateExecutiveSummaryField("decisionAsk", e.target.value)
+                  }
+                  rows={3}
+                  placeholder="What decision, approval, funding, or next step is being requested?"
+                />
+              </div>
+
+              <div>
+                <FieldLabel label="Recommendation" />
+                <TextArea
+                  value={executiveSummary.recommendation || ""}
+                  onChange={(e) =>
+                    updateExecutiveSummaryField("recommendation", e.target.value)
+                  }
+                  rows={3}
+                  placeholder="Recommended direction based on current facts and assumptions."
+                />
+              </div>
+
+              <div>
+                <FieldLabel label="Key Benefits" />
+                <TextArea
+                  value={executiveSummary.keyBenefits || ""}
+                  onChange={(e) =>
+                    updateExecutiveSummaryField("keyBenefits", e.target.value)
+                  }
+                  rows={4}
+                  placeholder="Summarize major benefits, value drivers, and outcome improvements."
+                />
+              </div>
+
+              <div>
+                <FieldLabel label="Key Costs / Investment" />
+                <TextArea
+                  value={executiveSummary.keyCosts || ""}
+                  onChange={(e) =>
+                    updateExecutiveSummaryField("keyCosts", e.target.value)
+                  }
+                  rows={4}
+                  placeholder="Summarize investment, Year 1 cost, recurring cost, and cost confidence."
+                />
+              </div>
+
+              <div>
+                <FieldLabel label="Scenario Takeaway" />
+                <TextArea
+                  value={executiveSummary.scenarioTakeaway || ""}
+                  onChange={(e) =>
+                    updateExecutiveSummaryField(
+                      "scenarioTakeaway",
+                      e.target.value
+                    )
+                  }
+                  rows={4}
+                  placeholder="Summarize low / expected / high scenario implications."
+                />
+              </div>
+
+              <div>
+                <FieldLabel label="Key Risks / Assumptions" />
+                <TextArea
+                  value={executiveSummary.risksAssumptions || ""}
+                  onChange={(e) =>
+                    updateExecutiveSummaryField(
+                      "risksAssumptions",
+                      e.target.value
+                    )
+                  }
+                  rows={4}
+                  placeholder="Summarize important assumptions, risks, and open validation needs."
+                />
+              </div>
+
+              <div>
+                <FieldLabel label="Recommended Next Steps" />
+                <TextArea
+                  value={executiveSummary.nextSteps || ""}
+                  onChange={(e) =>
+                    updateExecutiveSummaryField("nextSteps", e.target.value)
+                  }
+                  rows={4}
+                  placeholder="List practical next steps for approval, validation, planning, or pilot."
+                />
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard
             title="Quick copy actions"
             subtitle="Use these to copy the compiled outputs without scrolling through each preview."
           >
             <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  copyText(outputs.executiveSummary, "Executive Summary Copied")
+                }
+                className="rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-left text-sm font-medium text-orange-700 transition hover:bg-orange-100"
+              >
+                Copy Executive Summary
+              </button>
+
               <button
                 type="button"
                 onClick={() => copyText(outputs.charterText, "Charter Copied")}
@@ -197,35 +400,9 @@ export default function OutputsWorkspace({
                 onClick={() =>
                   copyText(outputs.scenarioSummary, "Scenario Summary Copied")
                 }
-                className="rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-left text-sm font-medium text-orange-700 transition hover:bg-orange-100"
+                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-sky-50"
               >
                 Copy Scenario Summary
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  copyText(
-                    outputs.assumptionsRegister,
-                    "Assumptions Register Copied"
-                  )
-                }
-                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-              >
-                Copy Assumptions Register
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  copyText(
-                    outputs.openQuestionsAndAssumptions,
-                    "Open Questions Copied"
-                  )
-                }
-                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-              >
-                Copy Open Questions & Assumptions
               </button>
 
               <button
@@ -246,43 +423,70 @@ export default function OutputsWorkspace({
               </div>
             </div>
           </SectionCard>
-
-          <SectionCard
-            title="Planned export actions"
-            subtitle="These are placeholders for future downloadable document generation."
-          >
-            <div className="grid gap-4">
-              <OutputSummaryCard
-                title="Download Charter"
-                value="Planned DOCX / PDF export of the project charter."
-              />
-
-              <OutputSummaryCard
-                title="Download Project Plan"
-                value="Planned DOCX / PDF export of the plan summary."
-              />
-
-              <OutputSummaryCard
-                title="Download Value Summary"
-                value="Planned DOCX / PDF export of the value estimate summary."
-              />
-
-              <OutputSummaryCard
-                title="Download Scenario Summary"
-                value="Planned DOCX / PDF export of the scenario summary."
-                accent="orange"
-              />
-
-              <OutputSummaryCard
-                title="Download Assumptions Register"
-                value="Planned DOCX / PDF export of the assumptions register and open questions."
-              />
-            </div>
-          </SectionCard>
         </>
       }
       right={
         <>
+          <PromptPanel
+            promptTitle="Executive summary AI prompt"
+            promptSubtitle="Generate a sponsor-ready executive summary using the compiled outputs."
+            promptText={executivePrompt}
+            onRefreshPrompt={buildAndSaveExecutivePrompt}
+            onCopyPrompt={handleCopyExecutivePrompt}
+            copyStatus={promptCopyStatus}
+            responseTitle="Paste executive summary AI response"
+            responseSubtitle="Paste the AI response here using the exact headings requested in the prompt."
+            responseValue={executiveSummary.aiResponse || ""}
+            onResponseChange={(e) =>
+              updateExecutiveSummaryField("aiResponse", e.target.value)
+            }
+            responsePlaceholder={`Paste the AI response here.
+
+Required structure:
+A. Executive Summary
+B. Decision Ask
+C. Recommendation
+D. Key Benefits
+E. Key Costs / Investment
+F. Scenario Takeaway
+G. Key Risks / Assumptions
+H. Recommended Next Steps`}
+            responseRows={14}
+            onParseResponse={handleParseExecutiveSummary}
+            onApplyResponse={handleParseExecutiveSummary}
+            parseLabel="Parse Executive Summary"
+            applyLabel="Apply Executive Summary"
+            helperTitle="How to use Executive Summary"
+            helperSteps={[
+              {
+                title: "Step 1",
+                body: "Refresh the prompt after the charter, value, cost, scenario, and assumptions sections are updated.",
+              },
+              {
+                title: "Step 2",
+                body: "Copy the prompt into your AI tool and ask it to create a sponsor-ready executive summary.",
+              },
+              {
+                title: "Step 3",
+                body: "Paste the AI response back into this panel and parse it into structured fields.",
+              },
+              {
+                title: "Step 4",
+                body: "Review and edit the fields before copying the full output pack.",
+              },
+            ]}
+          />
+
+          <OutputPreviewCard
+            title="Executive Summary"
+            value={outputs.executiveSummary}
+            onCopy={() =>
+              copyText(outputs.executiveSummary, "Executive Summary Copied")
+            }
+            copyLabel="Copy Executive Summary"
+            accent="orange"
+          />
+
           <OutputPreviewCard
             title="Project Charter"
             value={outputs.charterText}
@@ -304,7 +508,6 @@ export default function OutputsWorkspace({
             value={outputs.valueSummary}
             onCopy={() => copyText(outputs.valueSummary, "Value Summary Copied")}
             copyLabel="Copy Value"
-            accent="orange"
           />
 
           <OutputPreviewCard
