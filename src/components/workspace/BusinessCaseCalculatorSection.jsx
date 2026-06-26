@@ -7,6 +7,7 @@ import {
   formatCurrency,
   formatNumber,
 } from "../../utils/calculationHelpers";
+import { buildCalculatorSuggestionFromAssumptions } from "../../utils/assumptionCalculationHelpers";
 
 function FieldLabel({ label, helper }) {
   return (
@@ -59,6 +60,11 @@ export default function BusinessCaseCalculatorSection({
     [businessCase]
   );
 
+  const assumptionSuggestion = useMemo(
+    () => buildCalculatorSuggestionFromAssumptions(projectData),
+    [projectData]
+  );
+
   const updateBusinessCase = (updater) => {
     setProjectData((prev) => ({
       ...prev,
@@ -99,12 +105,84 @@ export default function BusinessCaseCalculatorSection({
     }));
   };
 
+  const handleApplyAssumptions = () => {
+    updateBusinessCase((prev) => ({
+      ...prev,
+      valueInputs: {
+        ...prev.valueInputs,
+        annualSavedHours:
+          assumptionSuggestion.annualSavedHours ||
+          prev.valueInputs.annualSavedHours,
+        weightedHourlyRate:
+          assumptionSuggestion.weightedHourlyRate ||
+          prev.valueInputs.weightedHourlyRate,
+        notes: assumptionSuggestion.valueNotes || prev.valueInputs.notes,
+      },
+      costInputs: {
+        ...prev.costInputs,
+        internalLaborCost:
+          assumptionSuggestion.internalLaborCost ||
+          prev.costInputs.internalLaborCost,
+        notes: assumptionSuggestion.costNotes || prev.costInputs.notes,
+      },
+    }));
+  };
+
   return (
     <SectionCard
       title="Scenario Calculator"
-      subtitle="Use lightweight inputs to create low, expected, and high business case scenarios. This is an early estimate, not a final financial model."
+      subtitle="Use lightweight inputs to create low, expected, and high business case scenarios. Assumptions can now auto-populate key calculator inputs."
     >
       <div className="space-y-8">
+        <div className="rounded-3xl border border-orange-200 bg-orange-50 p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-orange-700">
+                Assumption-Based Suggestions
+              </h3>
+              <p className="mt-1 text-sm leading-6 text-slate-700">
+                Use the assumptions register to estimate annual saved hours,
+                blended hourly rate, and internal labor cost.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleApplyAssumptions}
+              className="rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
+            >
+              Apply Assumptions to Calculator
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <OutputSummaryCard
+              title="Suggested Annual Saved Hours"
+              value={
+                assumptionSuggestion.annualSavedHours ||
+                "No savings-hour suggestion available."
+              }
+              accent="orange"
+            />
+            <OutputSummaryCard
+              title="Suggested Weighted Hourly Rate"
+              value={
+                assumptionSuggestion.weightedHourlyRate
+                  ? `$${assumptionSuggestion.weightedHourlyRate}`
+                  : "No labor-rate suggestion available."
+              }
+            />
+            <OutputSummaryCard
+              title="Suggested Internal Labor Cost"
+              value={
+                assumptionSuggestion.internalLaborCost
+                  ? formatCurrency(assumptionSuggestion.internalLaborCost)
+                  : "No internal-labor-cost suggestion available."
+              }
+            />
+          </div>
+        </div>
+
         <div>
           <h3 className="text-base font-semibold text-slate-900">
             Value Inputs
@@ -203,7 +281,7 @@ export default function BusinessCaseCalculatorSection({
                 value={businessCase.valueInputs.notes}
                 onChange={(e) => updateValueInput("notes", e.target.value)}
                 placeholder="Add notes about how value inputs were estimated."
-                rows={3}
+                rows={4}
               />
             </div>
           </div>
@@ -277,7 +355,7 @@ export default function BusinessCaseCalculatorSection({
               <FieldLabel label="Support / Launch Cost" />
               <TextInput
                 value={businessCase.costInputs.supportCost}
-                onChange={(e) => updateCostInput("supportCost", e.target.value)}
+                onChange={(e) => lue)}
                 placeholder="Example: 5000"
               />
             </div>
@@ -324,7 +402,7 @@ export default function BusinessCaseCalculatorSection({
                 value={businessCase.costInputs.notes}
                 onChange={(e) => updateCostInput("notes", e.target.value)}
                 placeholder="Add notes about cost assumptions, confidence, or known gaps."
-                rows={3}
+                rows={4}
               />
             </div>
           </div>
@@ -335,7 +413,8 @@ export default function BusinessCaseCalculatorSection({
             Scenario Factors
           </h3>
           <p className="mt-1 text-sm text-slate-600">
-            Adjust benefit and cost multipliers for low, expected, and high cases.
+            Adjust benefit and cost multipliers for low, expected, and high
+            cases.
           </p>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-3">
