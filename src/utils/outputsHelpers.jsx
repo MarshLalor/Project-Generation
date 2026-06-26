@@ -3,6 +3,7 @@ import {
   formatCurrency,
   formatNumber,
 } from "./calculationHelpers";
+import { buildExecutiveSummaryText } from "./executiveSummaryHelpers";
 
 function safeText(value, fallback = "Not yet provided") {
   return value && String(value).trim() ? String(value).trim() : fallback;
@@ -118,8 +119,7 @@ function formatBenchmarkRows(items = []) {
 }
 
 function buildScenarioSummary(projectData) {
-  const businessCase = projectData?.businessCase;
-  const scenarioData = calculateScenarioSummary(businessCase);
+  const scenarioData = calculateScenarioSummary(projectData?.businessCase);
 
   const scenarioBlocks = scenarioData.scenarios.map((scenario) => {
     return [
@@ -179,6 +179,8 @@ export function buildOutputsPayload(projectData) {
   const valueEstimate = projectData?.valueEstimate || {};
   const costEstimate = projectData?.costEstimate || {};
   const assumptions = projectData?.assumptions || {};
+
+  const executiveSummary = buildExecutiveSummaryText(projectData);
 
   const effectiveCharterText =
     charter.charterText && charter.charterText.trim()
@@ -392,6 +394,10 @@ export function buildOutputsPayload(projectData) {
   ].join("\n");
 
   const fullOutputPack = [
+    executiveSummary,
+    "",
+    "============================================================",
+    "",
     effectiveCharterText,
     "",
     "============================================================",
@@ -420,6 +426,7 @@ export function buildOutputsPayload(projectData) {
   ].join("\n");
 
   return {
+    executiveSummary,
     charterText: effectiveCharterText,
     projectPlanSummary,
     valueSummary,
@@ -432,6 +439,10 @@ export function buildOutputsPayload(projectData) {
 }
 
 export function getOutputsReadiness(projectData) {
+  const executiveReady =
+    projectData?.executiveSummary?.summaryText?.trim() ||
+    projectData?.executiveSummary?.recommendation?.trim();
+
   const charterReady =
     projectData?.charter?.charterText?.trim() ||
     projectData?.projectBasics?.projectObjective?.trim();
@@ -465,6 +476,7 @@ export function getOutputsReadiness(projectData) {
     projectData?.businessCase?.costInputs?.implementationCost?.trim();
 
   const checks = [
+    { label: "Executive Summary", ready: !!executiveReady },
     { label: "Charter", ready: !!charterReady },
     { label: "Project Plan Summary", ready: !!hasPlan },
     { label: "Value Summary", ready: !!hasValue },

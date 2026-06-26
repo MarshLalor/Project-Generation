@@ -1,5 +1,6 @@
 import { createDefaultAssumptionsState } from "./assumptionsHelpers";
 import { createDefaultBusinessCaseState } from "./calculationHelpers";
+import { createDefaultExecutiveSummaryState } from "./executiveSummaryHelpers";
 
 function isPlainObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -158,6 +159,7 @@ export function createInitialProjectData() {
     },
     assumptions: createDefaultAssumptionsState(),
     businessCase: createDefaultBusinessCaseState(),
+    executiveSummary: createDefaultExecutiveSummaryState(),
   };
 }
 
