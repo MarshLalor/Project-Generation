@@ -16,6 +16,7 @@ import {
   downloadMarkdownFile,
   downloadTextFile,
 } from "../../utils/exportHelpers";
+import { downloadDocxFile } from "../../utils/docxExportHelpers";
 
 function OutputPreviewCard({ title, value, onCopy, copyLabel, accent = "sky" }) {
   const borderClasses =
@@ -206,6 +207,22 @@ export default function OutputsWorkspace({
     window.setTimeout(() => setDownloadStatus("No recent download."), 2200);
   };
 
+  const downloadOutputDocx = async (sectionName, content) => {
+    try {
+      await downloadDocxFile({
+        projectData,
+        sectionName,
+        content,
+      });
+
+      setDownloadStatus(`Downloaded ${sectionName} DOCX`);
+      window.setTimeout(() => setDownloadStatus("No recent download."), 2200);
+    } catch (error) {
+      setDownloadStatus(`DOCX download failed for ${sectionName}`);
+      window.setTimeout(() => setDownloadStatus("No recent download."), 2600);
+    }
+  };
+
   const handleRefreshOutputs = () => {
     setProjectData((prev) => ({ ...prev }));
   };
@@ -215,10 +232,10 @@ export default function OutputsWorkspace({
       badges={[
         { label: "Outputs Studio", tone: "blue" },
         { label: "Real Downloads", tone: "softBlue" },
-        { label: "Export-Ready Foundation", tone: "orange" },
+        { label: "DOCX Export", tone: "orange" },
       ]}
       title="Outputs Workspace"
-      description="Compile and download the executive summary, project charter, plan summary, value summary, cost summary, scenario summary, assumptions register, open questions, and full output pack."
+      description="Compile, copy, and download the executive summary, project charter, plan summary, value summary, cost summary, scenario summary, assumptions register, open questions, and full output pack."
       actions={
         <>
           <button
@@ -254,7 +271,7 @@ export default function OutputsWorkspace({
         detail: `${readiness.completed} of ${readiness.total} core outputs ready`,
         secondaryLabel: "Export-ready package",
         secondaryText:
-          "The final package can now be copied or downloaded as text/markdown files. This prepares the app for future DOCX/PDF export.",
+          "The final package can be copied, downloaded as text/markdown, or exported as editable Word documents.",
       }}
       left={
         <>
@@ -309,7 +326,10 @@ export default function OutputsWorkspace({
                 <TextArea
                   value={executiveSummary.recommendation || ""}
                   onChange={(e) =>
-                    updateExecutiveSummaryField("recommendation", e.target.value)
+                    updateExecutiveSummaryField(
+                      "recommendation",
+                      e.target.value
+                    )
                   }
                   rows={3}
                   placeholder="Recommended direction based on current facts and assumptions."
@@ -333,7 +353,7 @@ export default function OutputsWorkspace({
                 <TextArea
                   value={executiveSummary.keyCosts || ""}
                   onChange={(e) =>
-                    updateExecutiveSummaryFields", e.target.value)
+                    updateExecutiveSummaryField("keyCosts", e.target.value)
                   }
                   rows={4}
                   placeholder="Summarize investment, Year 1 cost, recurring cost, and cost confidence."
@@ -349,7 +369,7 @@ export default function OutputsWorkspace({
                       "scenarioTakeaway",
                       e.target.value
                     )
-                  }
+         }
                   rows={4}
                   placeholder="Summarize low / expected / high scenario implications."
                 />
@@ -468,7 +488,7 @@ export default function OutputsWorkspace({
 
           <SectionCard
             title="Download outputs"
-            subtitle="Download individual deliverables or the full output pack as text or markdown files."
+            subtitle="Download individual deliverables as TXT, Markdown, or Word documents."
           >
             <div className="grid gap-3">
               <DownloadButton
@@ -541,6 +561,84 @@ export default function OutputsWorkspace({
                 primary
                 onClick={() =>
                   downloadOutput("Full Output Pack", outputs.fullOutputPack, "md")
+                }
+              />
+
+              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
+                <p className="text-sm font-semibold text-sky-700">
+                  Word exports
+                </p>
+                <p className="mt-1 text-sm text-slate-700">
+                  Download output sections as editable Word documents.
+                </p>
+              </div>
+
+              <DownloadButton
+                label="Download Executive Summary (.docx)"
+                onClick={() =>
+                  downloadOutputDocx(
+                    "Executive Summary",
+                    outputs.executiveSummary
+                  )
+                }
+              />
+
+              <DownloadButton
+                label="Download Charter (.docx)"
+                onClick={() =>
+                  downloadOutputDocx("Project Charter", outputs.charterText)
+                }
+              />
+
+              <DownloadButton
+                label="Download Project Plan Summary (.docx)"
+                onClick={() =>
+                  downloadOutputDocx(
+                    "Project Plan Summary",
+                    outputs.projectPlanSummary
+                  )
+                }
+              />
+
+              <DownloadButton
+                label="Download Value Summary (.docx)"
+                onClick={() =>
+                  downloadOutputDocx("Value Summary", outputs.valueSummary)
+                }
+              />
+
+              <DownloadButton
+                label="Download Cost Summary (.docx)"
+                onClick={() =>
+                  downloadOutputDocx("Cost Summary", outputs.costSummary)
+                }
+              />
+
+              <DownloadButton
+                label="Download Scenario Summary (.docx)"
+                onClick={() =>
+                  downloadOutputDocx(
+                    "Scenario Summary",
+                    outputs.scenarioSummary
+                  )
+                }
+              />
+
+              <DownloadButton
+                label="Download Assumptions Register (.docx)"
+                onClick={() =>
+                  downloadOutputDocx(
+                    "Assumptions Register",
+                    outputs.assumptionsRegister
+                  )
+                }
+              />
+
+              <DownloadButton
+                label="Download Full Output Pack (.docx)"
+                primary
+                onClick={() =>
+                  downloadOutputDocx("Full Output Pack", outputs.fullOutputPack)
                 }
               />
 
