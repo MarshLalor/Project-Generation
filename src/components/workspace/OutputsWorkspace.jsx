@@ -89,10 +89,10 @@ export default function OutputsWorkspace({
       badges={[
         { label: "Outputs Studio", tone: "blue" },
         { label: "Compiled Deliverables", tone: "softBlue" },
-        { label: "Assumptions-Aware", tone: "orange" },
+        { label: "Scenario-Aware", tone: "orange" },
       ]}
       title="Outputs Workspace"
-      description="Compile the project charter, plan summary, value summary, cost summary, assumptions register, and open questions into reusable outputs that are ready for future export."
+      description="Compile the project charter, plan summary, value summary, cost summary, scenario summary, assumptions register, and open questions into reusable outputs that are ready for future export."
       actions={
         <>
           <button
@@ -128,7 +128,7 @@ export default function OutputsWorkspace({
         detail: `${readiness.completed} of ${readiness.total} core outputs ready`,
         secondaryLabel: "Output package",
         secondaryText:
-          "The final output package includes the charter, project plan, value summary, cost summary, assumptions register, and open questions.",
+          "The final output package now includes the scenario summary, which makes the value and cost story easier to review with sponsors.",
       }}
       left={
         <>
@@ -195,6 +195,16 @@ export default function OutputsWorkspace({
               <button
                 type="button"
                 onClick={() =>
+                  copyText(outputs.scenarioSummary, "Scenario Summary Copied")
+                }
+                className="rounded-2xl border border-orange-200 bg-orange-50 px-5 py-3 text-left text-sm font-medium text-orange-700 transition hover:bg-orange-100"
+              >
+                Copy Scenario Summary
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
                   copyText(
                     outputs.assumptionsRegister,
                     "Assumptions Register Copied"
@@ -248,19 +258,24 @@ export default function OutputsWorkspace({
               />
 
               <OutputSummaryCard
-                title="Download Value Summary"
-                value="Planned DOCX / PDF export of the value estimate summary."
-              />
-
-              <OutputSummaryCard
                 title="Download Project Plan"
                 value="Planned DOCX / PDF export of the plan summary."
               />
 
               <OutputSummaryCard
+                title="Download Value Summary"
+                value="Planned DOCX / PDF export of the value estimate summary."
+              />
+
+              <OutputSummaryCard
+                title="Download Scenario Summary"
+                value="Planned DOCX / PDF export of the scenario summary."
+                accent="orange"
+              />
+
+              <OutputSummaryCard
                 title="Download Assumptions Register"
                 value="Planned DOCX / PDF export of the assumptions register and open questions."
-                accent="orange"
               />
             </div>
           </SectionCard>
@@ -300,13 +315,22 @@ export default function OutputsWorkspace({
           />
 
           <OutputPreviewCard
+            title="Scenario Summary"
+            value={outputs.scenarioSummary}
+            onCopy={() =>
+              copyText(outputs.scenarioSummary, "Scenario Summary Copied")
+            }
+            copyLabel="Copy Scenario"
+            accent="orange"
+          />
+
+          <OutputPreviewCard
             title="Assumptions Register"
             value={outputs.assumptionsRegister}
             onCopy={() =>
               copyText(outputs.assumptionsRegister, "Assumptions Copied")
             }
             copyLabel="Copy Assumptions"
-            accent="orange"
           />
 
           <OutputPreviewCard
