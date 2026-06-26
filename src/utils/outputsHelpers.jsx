@@ -1,3 +1,9 @@
+import {
+  calculateScenarioSummary,
+  formatCurrency,
+  formatNumber,
+} from "./calculationHelpers";
+
 function safeText(value, fallback = "Not yet provided") {
   return value && String(value).trim() ? String(value).trim() : fallback;
 }
@@ -109,6 +115,60 @@ function formatBenchmarkRows(items = []) {
       ].join("\n");
     })
     .join("\n\n");
+}
+
+function buildScenarioSummary(projectData) {
+  const businessCase = projectData?.businessCase;
+  const scenarioData = calculateScenarioSummary(businessCase);
+
+  const scenarioBlocks = scenarioData.scenarios.map((scenario) => {
+    return [
+      `${scenario.label} Scenario`,
+      `Annual Benefit: ${formatCurrency(scenario.annualBenefit)}`,
+      `Year 1 Cost: ${formatCurrency(scenario.yearOneCost)}`,
+      `Recurring Annual Cost: ${formatCurrency(scenario.recurringAnnualCost)}`,
+      `Year 1 Net Value: ${formatCurrency(scenario.yearOneNetValue)}`,
+      `Payback: ${
+        scenario.paybackYears === null
+          ? "N/A"
+          : `${formatNumber(scenario.paybackYears)} years`
+      }`,
+      `Benefit Factor: ${scenario.benefitFactor}`,
+      `Cost Factor: ${scenario.costFactor}`,
+      `Notes: ${safeText(scenario.notes)}`,
+    ].join("\n");
+  });
+
+  return [
+    `${safeText(
+      projectData?.projectBasics?.title,
+      "Untitled Project"
+    )} — Scenario Summary`,
+    "",
+    "BASE VALUE SUMMARY",
+    `Base Annual Labor Savings: ${formatCurrency(
+      scenarioData.baseValue.laborSavings
+    )}`,
+    `Base Additional Annual Value: ${formatCurrency(
+      scenarioData.baseValue.additionalValue
+    )}`,
+    `Base Total Annual Value: ${formatCurrency(
+      scenarioData.baseValue.totalAnnualValue
+    )}`,
+    "",
+    "BASE COST SUMMARY",
+    `One-Time Cost Subtotal: ${formatCurrency(
+      scenarioData.baseCost.oneTimeSubtotal
+    )}`,
+    `Contingency: ${formatCurrency(scenarioData.baseCost.contingency)}`,
+    `Base Year 1 Cost: ${formatCurrency(scenarioData.baseCost.yearOneCost)}`,
+    `Base Recurring Annual Cost: ${formatCurrency(
+      scenarioData.baseCost.recurringAnnualCost
+    )}`,
+    "",
+    "LOW / EXPECTED / HIGH SCENARIOS",
+    scenarioBlocks.join("\n\n"),
+  ].join("\n");
 }
 
 export function buildOutputsPayload(projectData) {
@@ -286,6 +346,8 @@ export function buildOutputsPayload(projectData) {
     safeText(assumptions?.calculationAssumptions?.notes),
   ].join("\n");
 
+  const scenarioSummary = buildScenarioSummary(projectData);
+
   const openQuestionsAndAssumptions = [
     `${safeText(basics.title, "Untitled Project")} — Open Questions & Assumptions`,
     "",
@@ -346,6 +408,10 @@ export function buildOutputsPayload(projectData) {
     "",
     "============================================================",
     "",
+    scenarioSummary,
+    "",
+    "============================================================",
+    "",
     assumptionsRegister,
     "",
     "============================================================",
@@ -358,6 +424,7 @@ export function buildOutputsPayload(projectData) {
     projectPlanSummary,
     valueSummary,
     costSummary,
+    scenarioSummary,
     assumptionsRegister,
     openQuestionsAndAssumptions,
     fullOutputPack,
@@ -375,11 +442,13 @@ export function getOutputsReadiness(projectData) {
 
   const hasValue =
     projectData?.valueEstimate?.preliminaryValueModel?.trim() ||
-    projectData?.valueEstimate?.likelyValueDrivers?.trim();
+    projectData?.valueEstimate?.likelyValueDrivers?.trim() ||
+    projectData?.businessCase?.valueInputs?.annualSavedHours?.trim();
 
   const hasCost =
     projectData?.costEstimate?.preliminaryCostSummary?.trim() ||
-    projectData?.costEstimate?.costCategories?.trim();
+    projectData?.costEstimate?.costCategories?.trim() ||
+    projectData?.businessCase?.costInputs?.softwareCost?.trim();
 
   const assumptions = projectData?.assumptions || {};
 
@@ -390,11 +459,17 @@ export function getOutputsReadiness(projectData) {
     assumptions?.benchmarkAssumptions?.items?.some(rowHasContent) ||
     assumptions?.openQuestions?.trim();
 
+  const hasScenario =
+    projectData?.businessCase?.valueInputs?.annualSavedHours?.trim() ||
+    projectData?.businessCase?.costInputs?.softwareCost?.trim() ||
+    projectData?.businessCase?.costInputs?.implementationCost?.trim();
+
   const checks = [
     { label: "Charter", ready: !!charterReady },
     { label: "Project Plan Summary", ready: !!hasPlan },
     { label: "Value Summary", ready: !!hasValue },
     { label: "Cost Summary", ready: !!hasCost },
+    { label: "Scenario Summary", ready: !!hasScenario },
     { label: "Assumptions Register", ready: !!hasAssumptions },
   ];
 
