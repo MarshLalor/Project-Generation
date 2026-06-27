@@ -10,6 +10,16 @@ import {
   planSectionConfigs,
 } from "../../utils/planStudioHelpers";
 
+const emptySectionState = {
+  promptText: "",
+  aiResponse: "",
+  draftContent: "",
+  missingInformation: "",
+  questionsForUser: "",
+  suggestedNextSteps: "",
+  keyAssumptions: "",
+};
+
 function TextArea({ value, onChange, placeholder, rows = 4 }) {
   return (
     <textarea
@@ -71,16 +81,6 @@ function SectionStatusCard({ config, isActive, isComplete, onClick }) {
   );
 }
 
-const emptySectionState = {
-  promptText: "",
-  aiResponse: "",
-  draftContent: "",
-  missingInformation: "",
-  questionsForUser: "",
-  suggestedNextSteps: "",
-  keyAssumptions: "",
-};
-
 export default function PlanStudioWorkspace({
   projectData,
   setProjectData,
@@ -107,33 +107,41 @@ export default function PlanStudioWorkspace({
   );
 
   const livePrompt = useMemo(() => {
-    return activeSectionState.promptText && activeSectionState.promptText.trim()
-      ? activeSectionState.promptText
-      : buildPlanSectionPrompt(projectData, activeSectionId);
+    if (activeSectionState.promptText && activeSectionState.promptText.trim()) {
+      return activeSectionState.promptText;
+    }
+
+    return buildPlanSectionPrompt(projectData, activeSectionId);
   }, [projectData, activeSectionId, activeSectionState.promptText]);
 
-  const updateActiveSection = (field, value) => {
-  setProjectData((prev) => {
-    const previousPlanStudio = prev.planStudio || {};
-    const previousSections = previousPlanStudio.sections || {};
-    const previousSection =
-      previousSections[activeSectionId] || emptySectionState;
+  const updateSectionState = (sectionId, updates) => {
+    setProjectData((prev) => {
+      const previousPlanStudio = prev.planStudio || {};
+      const previousSections = previousPlanStudio.sections || {};
+      const previousSection =
+        previousSections[sectionId] || emptySectionState;
 
-    return {
-      ...prev,
-      planStudio: {
-        ...previousPlanStudio,
-        sections: {
-          ...previousSections,
-          [activeSectionId]: {
-            ...previousSection,
-            [field]: value,
+      return {
+        ...prev,
+        planStudio: {
+          ...previousPlanStudio,
+          sections: {
+            ...previousSections,
+            [sectionId]: {
+              ...previousSection,
+              ...updates,
+            },
           },
         },
-      },
-    };
-  });
-};
+      };
+    });
+  };
+
+  const updateActiveSection = (field, value) => {
+    updateSectionState(activeSectionId, {
+      [field]: value,
+    });
+  };
 
   const setActiveSection = (sectionId) => {
     setProjectData((prev) => ({
@@ -146,29 +154,12 @@ export default function PlanStudioWorkspace({
   };
 
   const handleGeneratePrompt = () => {
-  const promptText = buildPlanSectionPrompt(projectData, activeSectionId);
+    const promptText = buildPlanSectionPrompt(projectData, activeSectionId);
 
-  setProjectData((prev) => {
-    const previousPlanStudio = prev.planStudio || {};
-    const previousSections = previousPlanStudio.sections || {};
-    const previousSection =
-      previousSections[activeSectionId] || emptySectionState;
-
-    return {
-      ...prev,
-      planStudio: {
-        ...previousPlanStudio,
-        sections: {
-          ...previousSections,
-          {
-            ...previousSection,
-            promptText,
-          },
-        },
-      },
-    };
-  });
-};
+    updateSectionState(activeSectionId, {
+      promptText,
+    });
+  };
 
   const handleCopyPrompt = async () => {
     try {
@@ -181,57 +172,20 @@ export default function PlanStudioWorkspace({
     }
   };
 
-const handleParseResponse = () => {
-  const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
-
-  setProjectData((prev) => {
-    const previousPlanStudio = prev.planStudio || {};
-    const previousSections = previousPlanStudio.sections || {};
-    const previousSection =
-      previousSections[activeSectionId] || emptySectionState;
-
-    return {
-      ...prev,
-      planStudio: {
-        ...previousPlanStudio,
-        sections: {
-          ...previousSections,
-          {
-            ...previousSection,
-            ...parsed,
-          },
-        },
-      },
-    };
-  });
-};
+  const handleParseResponse = () => {
+    const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
+    updateSectionState(activeSectionId, parsed);
+  };
 
   const handleApplyDraftToSection = () => {
-  const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
+    const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
 
-  setProjectData((prev) => {
-    const previousPlanStudio = prev.planStudio || {};
-    const previousSections = previousPlanStudio.sections || {};
-    const previousSection =
-      previousSections[activeSectionId] || emptySectionState;
-
-    return {
-      ...prev,
-      planStudio: {
-        ...previousPlanStudio,
-        sections: {
-          ...previousSections,
-          {
-            ...previousSection,
-            ...parsed,
-            draftContent:
-              parsed.draftContent || previousSection.draftContent || "",
-          },
-        },
-      },
-    };
-  });
-};
+    updateSectionState(activeSectionId, {
+      ...parsed,
+      draftContent:
+        parsed.draftContent || activeSectionState.draftContent || "",
+    });
+  };
 
   return (
     <BuilderLayout
@@ -262,8 +216,7 @@ const handleParseResponse = () => {
 
           <button
             type="button"
-            onClick={onContinueToValue}
-            className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
+            onClick={onContinueToValuee="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
           >
             Go to Value Estimate
           </button>
