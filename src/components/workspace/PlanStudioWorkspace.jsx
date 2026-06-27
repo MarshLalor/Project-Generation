@@ -80,7 +80,8 @@ export default function PlanStudioWorkspace({
 }) {
   const [copyStatus, setCopyStatus] = useState("idle");
 
-  const planStudio = projectData.planStudio;
+  const planStudio = projectData.planStudio || {};
+  const sections = planStudio.sections || {};
   const activeSectionId = planStudio.activeSection || "scope";
 
   const activeSectionConfig =
@@ -88,7 +89,16 @@ export default function PlanStudioWorkspace({
     planSectionConfigs[0];
 
   const activeSectionState =
-    planStudio.sections[activeSectionId] || planStudio.sections.scope;
+    sections[activeSectionId] ||
+    sections.scope || {
+      promptText: "",
+      aiResponse: "",
+      draftContent: "",
+      missingInformation: "",
+      questionsForUser: "",
+      suggestedNextSteps: "",
+      keyAssumptions: "",
+    };
 
   const progress = useMemo(
     () => getPlanStudioProgress(planStudio),
@@ -108,9 +118,9 @@ export default function PlanStudioWorkspace({
         ...prev.planStudio,
         sections: {
           ...prev.planStudio.sections,
-          {
+          [activeSectionId]: {
             ...prev.planStudio.sections[activeSectionId],
-            value,
+            [field]: value,
           },
         },
       },
@@ -136,7 +146,7 @@ export default function PlanStudioWorkspace({
         ...prev.planStudio,
         sections: {
           ...prev.planStudio.sections,
-          {
+          [activeSectionId]: {
             ...prev.planStudio.sections[activeSectionId],
             promptText,
           },
@@ -165,7 +175,7 @@ export default function PlanStudioWorkspace({
         ...prev.planStudio,
         sections: {
           ...prev.planStudio.sections,
-          {
+          [activeSectionId]: {
             ...prev.planStudio.sections[activeSectionId],
             ...parsed,
           },
@@ -183,7 +193,7 @@ export default function PlanStudioWorkspace({
         ...prev.planStudio,
         sections: {
           ...prev.planStudio.sections,
-          {
+          [activeSectionId]: {
             ...prev.planStudio.sections[activeSectionId],
             ...parsed,
             draftContent:
@@ -198,9 +208,7 @@ export default function PlanStudioWorkspace({
   return (
     <BuilderLayout
       badges={[
-        { label: "Plan Studio", tone: "blue" },
-        { label: "PMBOK-Aligned", tone: "softBlue" },
-        { label: "AI Section Builder", tone: "orange" },
+        { label: "Plan Studio", : "AI Section Builder", tone: "orange" },
       ]}
       title="Plan Studio Workspace"
       description="Build the project plan section by section using Project Basics and the Charter as source context."
@@ -248,7 +256,7 @@ export default function PlanStudioWorkspace({
           >
             <div className="space-y-3">
               {planSectionConfigs.map((config) => {
-                const state = planStudio.sections[config.id];
+                const state = sections[config.id];
                 const complete =
                   state?.draftContent && String(state.draftContent).trim();
 
