@@ -13,7 +13,7 @@ import {
 function TextArea({ value, onChange, placeholder, rows = 4 }) {
   return (
     <textarea
-      value={value}
+      value={value || ""}
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
@@ -71,6 +71,16 @@ function SectionStatusCard({ config, isActive, isComplete, onClick }) {
   );
 }
 
+const emptySectionState = {
+  promptText: "",
+  aiResponse: "",
+  draftContent: "",
+  missingInformation: "",
+  questionsForUser: "",
+  suggestedNextSteps: "",
+  keyAssumptions: "",
+};
+
 export default function PlanStudioWorkspace({
   projectData,
   setProjectData,
@@ -89,16 +99,7 @@ export default function PlanStudioWorkspace({
     planSectionConfigs[0];
 
   const activeSectionState =
-    sections[activeSectionId] ||
-    sections.scope || {
-      promptText: "",
-      aiResponse: "",
-      draftContent: "",
-      missingInformation: "",
-      questionsForUser: "",
-      suggestedNextSteps: "",
-      keyAssumptions: "",
-    };
+    sections[activeSectionId] || sections.scope || emptySectionState;
 
   const progress = useMemo(
     () => getPlanStudioProgress(planStudio),
@@ -112,19 +113,26 @@ export default function PlanStudioWorkspace({
   }, [projectData, activeSectionId, activeSectionState.promptText]);
 
   const updateActiveSection = (field, value) => {
-    setProjectData((prev) => ({
-      ...prev,
-      planStudio: {
-        ...prev.planStudio,
-        sections: {
-          ...prev.planStudio.sections,
-          [activeSectionId]: {
-            ...prev.planStudio.sections[activeSectionId],
-            [field]: value,
+    setProjectData((prev) => {
+      const previousPlanStudio = prev.planStudio || {};
+      const previousSections = previousPlanStudio.sections || {};
+      const previousSection =
+        previousSections[activeSectionId] || emptySectionState;
+
+      return {
+        ...prev,
+        planStudio: {
+          ...previousPlanStudio,
+          sections: {
+            ...previousSections,
+            [activeSectionId]: {
+              ...previousSection,
+              [field]: value,
+            },
           },
         },
-      },
-    }));
+      };
+    });
   };
 
   const setActiveSection = (sectionId) => {
@@ -140,19 +148,26 @@ export default function PlanStudioWorkspace({
   const handleGeneratePrompt = () => {
     const promptText = buildPlanSectionPrompt(projectData, activeSectionId);
 
-    setProjectData((prev) => ({
-      ...prev,
-      planStudio: {
-        ...prev.planStudio,
-        sections: {
-          ...prev.planStudio.sections,
-          [activeSectionId]: {
-            ...prev.planStudio.sections[activeSectionId],
-            promptText,
+    setProjectData((prev) => {
+      const previousPlanStudio = prev.planStudio || {};
+      const previousSections = previousPlanStudio.sections || {};
+      const previousSection =
+        previousSections[activeSectionId] || emptySectionState;
+
+      return {
+        ...prev,
+        planStudio: {
+          ...previousPlanStudio,
+          sections: {
+            ...previousSections,
+            [activeSectionId]: {
+              ...previousSection,
+              promptText,
+            },
           },
         },
-      },
-    }));
+      };
+    });
   };
 
   const handleCopyPrompt = async () => {
@@ -169,46 +184,56 @@ export default function PlanStudioWorkspace({
   const handleParseResponse = () => {
     const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
 
-    setProjectData((prev) => ({
-      ...prev,
-      planStudio: {
-        ...prev.planStudio,
-        sections: {
-          ...prev.planStudio.sections,
-          [activeSectionId]: {
-            ...prev.planStudio.sections[activeSectionId],
-            ...parsed,
+    setProjectData((prev) => {
+      const previousPlanStudio = prev.planStudio || {};
+      const previousSections = previousPlanStudio.sections || {};
+      const previousSection =
+        previousSections[activeSectionId] || emptySectionState;
+
+      return {
+        ...prev,
+        planStudio: {
+          ...previousPlanStudio,
+          sections: {
+            ...previousSections,
+            [activeSectionId]: {
+              ...previousSection,
+              ...parsed,
+            },
           },
         },
-      },
-    }));
+      };
+    });
   };
 
   const handleApplyDraftToSection = () => {
     const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
 
-    setProjectData((prev) => ({
-      ...prev,
-      planStudio: {
-        ...prev.planStudio,
-        sections: {
-          ...prev.planStudio.sections,
-          [activeSectionId]: {
-            ...prev.planStudio.sections[activeSectionId],
-            ...parsed,
-            draftContent:
-              parsed.draftContent ||
-              prev.planStudio.sections[activeSectionId].draftContent,
+    setProjectData((prev) => {
+      const previousPlanStudio = prev.planStudio || {};
+      const previousSections = previousPlanStudio.sections || {};
+      const previousSection =
+        previousSections[activeSectionId] || emptySectionState ...previousPlanStudio,
+          sections: {
+            ...previousSections,
+            {
+              ...previousSection,
+              ...parsed,
+              draftContent:
+                parsed.draftContent || previousSection.draftContent || "",
+            },
           },
         },
-      },
-    }));
+      };
+    });
   };
 
   return (
     <BuilderLayout
       badges={[
-        { label: "Plan Studio", : "AI Section Builder", tone: "orange" },
+        { label: "Plan Studio", tone: "blue" },
+        { label: "PMBOK-Aligned", tone: "softBlue" },
+        { label: "AI Section Builder", tone: "orange" },
       ]}
       title="Plan Studio Workspace"
       description="Build the project plan section by section using Project Basics and the Charter as source context."
