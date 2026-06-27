@@ -11,6 +11,7 @@ import CostEstimateWorkspace from "./components/workspace/CostEstimateWorkspace"
 import AssumptionsWorkspace from "./components/workspace/AssumptionsWorkspace";
 import OutputsWorkspace from "./components/workspace/OutputsWorkspace";
 import { topNavTabs, tabGuideCards } from "./data/projectBuilderConfig";
+import NextStepBanner from "./components/common/NextStepBanner";
 import {
   clearProjectSlot,
   createNewProjectForSlot,
@@ -251,11 +252,21 @@ export default function App() {
       />
 
       <main className="mx-auto max-w-7xl px-3 pb-16 pt-6 sm:px-6 lg:px-8">
+		{activeTab !== "home" ? (
+		  <div className="mb-6">
+		    <NextStepBanner
+		      projectData={projectData}
+		      activeTab={activeTab}
+		      onNavigate={setActiveTab}
+		    />
+		  </div>
+		) : null}
         {activeTab === "home" ? (
-          <LandingPage
-            onNavigate={setActiveTab}
-            onStartNew={handleStartNew}
-          />
+         	<LandingPage
+ 		  projectData={projectData}
+ 		  onNavigate={setActiveTab}
+  		  onStartNew={handleStartNew}
+		/>
         ) : activeTab === "ideation" ? (
           <IdeationWorkspace
             projectData={projectData}
