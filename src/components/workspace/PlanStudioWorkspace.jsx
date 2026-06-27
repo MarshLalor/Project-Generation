@@ -113,27 +113,27 @@ export default function PlanStudioWorkspace({
   }, [projectData, activeSectionId, activeSectionState.promptText]);
 
   const updateActiveSection = (field, value) => {
-    setProjectData((prev) => {
-      const previousPlanStudio = prev.planStudio || {};
-      const previousSections = previousPlanStudio.sections || {};
-      const previousSection =
-        previousSections[activeSectionId] || emptySectionState;
+  setProjectData((prev) => {
+    const previousPlanStudio = prev.planStudio || {};
+    const previousSections = previousPlanStudio.sections || {};
+    const previousSection =
+      previousSections[activeSectionId] || emptySectionState;
 
-      return {
-        ...prev,
-        planStudio: {
-          ...previousPlanStudio,
-          sections: {
-            ...previousSections,
-            [activeSectionId]: {
-              ...previousSection,
-              [field]: value,
-            },
+    return {
+      ...prev,
+      planStudio: {
+        ...previousPlanStudio,
+        sections: {
+          ...previousSections,
+          [activeSectionId]: {
+            ...previousSection,
+            [field]: value,
           },
         },
-      };
-    });
-  };
+      },
+    };
+  });
+};
 
   const setActiveSection = (sectionId) => {
     setProjectData((prev) => ({
@@ -146,29 +146,29 @@ export default function PlanStudioWorkspace({
   };
 
   const handleGeneratePrompt = () => {
-    const promptText = buildPlanSectionPrompt(projectData, activeSectionId);
+  const promptText = buildPlanSectionPrompt(projectData, activeSectionId);
 
-    setProjectData((prev) => {
-      const previousPlanStudio = prev.planStudio || {};
-      const previousSections = previousPlanStudio.sections || {};
-      const previousSection =
-        previousSections[activeSectionId] || emptySectionState;
+  setProjectData((prev) => {
+    const previousPlanStudio = prev.planStudio || {};
+    const previousSections = previousPlanStudio.sections || {};
+    const previousSection =
+      previousSections[activeSectionId] || emptySectionState;
 
-      return {
-        ...prev,
-        planStudio: {
-          ...previousPlanStudio,
-          sections: {
-            ...previousSections,
-            [activeSectionId]: {
-              ...previousSection,
-              promptText,
-            },
+    return {
+      ...prev,
+      planStudio: {
+        ...previousPlanStudio,
+        sections: {
+          ...previousSections,
+          {
+            ...previousSection,
+            promptText,
           },
         },
-      };
-    });
-  };
+      },
+    };
+  });
+};
 
   const handleCopyPrompt = async () => {
     try {
@@ -181,52 +181,57 @@ export default function PlanStudioWorkspace({
     }
   };
 
-  const handleParseResponse = () => {
-    const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
+const handleParseResponse = () => {
+  const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
 
-    setProjectData((prev) => {
-      const previousPlanStudio = prev.planStudio || {};
-      const previousSections = previousPlanStudio.sections || {};
-      const previousSection =
-        previousSections[activeSectionId] || emptySectionState;
+  setProjectData((prev) => {
+    const previousPlanStudio = prev.planStudio || {};
+    const previousSections = previousPlanStudio.sections || {};
+    const previousSection =
+      previousSections[activeSectionId] || emptySectionState;
 
-      return {
-        ...prev,
-        planStudio: {
-          ...previousPlanStudio,
-          sections: {
-            ...previousSections,
-            [activeSectionId]: {
-              ...previousSection,
-              ...parsed,
-            },
+    return {
+      ...prev,
+      planStudio: {
+        ...previousPlanStudio,
+        sections: {
+          ...previousSections,
+          {
+            ...previousSection,
+            ...parsed,
           },
         },
-      };
-    });
-  };
+      },
+    };
+  });
+};
 
   const handleApplyDraftToSection = () => {
-    const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
+  const parsed = parsePlanStudioResponse(activeSectionState.aiResponse);
 
-    setProjectData((prev) => {
-      const previousPlanStudio = prev.planStudio || {};
-      const previousSections = previousPlanStudio.sections || {};
-      const previousSection =
-        previousSections[activeSectionId] || emptySectionState ...previousPlanStudio,
-          sections: {
-            ...previousSections,
-            {
-              ...previousSection,
-              ...parsed,
-              draftContent:
-                parsed.draftContent || previousSection.draftContent || "",
-            },
+  setProjectData((prev) => {
+    const previousPlanStudio = prev.planStudio || {};
+    const previousSections = previousPlanStudio.sections || {};
+    const previousSection =
+      previousSections[activeSectionId] || emptySectionState;
+
+    return {
+      ...prev,
+      planStudio: {
+        ...previousPlanStudio,
+        sections: {
+          ...previousSections,
+          {
+            ...previousSection,
+            ...parsed,
+            draftContent:
+              parsed.draftContent || previousSection.draftContent || "",
           },
         },
-      };
-    });
-  };
+      },
+    };
+  });
+};
 
   return (
     <BuilderLayout
