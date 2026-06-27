@@ -90,7 +90,7 @@ export default function PlanStudioWorkspace({
 }) {
   const [copyStatus, setCopyStatus] = useState("idle");
 
-  const planStudio = projectData.planStudio || {};
+  const planStudio = projectData?.planStudio || {};
   const sections = planStudio.sections || {};
   const activeSectionId = planStudio.activeSection || "scope";
 
@@ -216,13 +216,11 @@ export default function PlanStudioWorkspace({
 
           <button
             type="button"
-            onClick={onContinueToValuee="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
+            onClick={onContinueToValue}
+            className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
           >
             Go to Value Estimate
-          </button>
-        </>
-      }
-      progress={{
+          </button>     progress={{
         percent: progress.percent,
         completed: progress.completed,
         total: progress.total,
