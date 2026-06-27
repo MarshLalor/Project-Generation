@@ -46,15 +46,16 @@ function FieldLabel({ label, helper }) {
 }
 
 function SectionStatusCard({ config, isActive, isComplete, onClick }) {
-  const toneClasses = isActive
-    ? "border-sky-300 bg-white shadow-sm"
-    : "border-sky-100 bg-sky-50/50 hover:border-sky-200 hover:bg-white";
-
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full rounded-3xl border p-4 text-left transition ${toneClasses}`}
+      className={[
+        "w-full rounded-3xl border p-4 text-left transition",
+        isActive
+          ? "border-sky-300 bg-white shadow-sm"
+          : "border-sky-100 bg-sky-50/50 hover:border-sky-200 hover:bg-white",
+      ].join(" ")}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -101,13 +102,12 @@ export default function PlanStudioWorkspace({
   const activeSectionState =
     sections[activeSectionId] || sections.scope || emptySectionState;
 
-  const progress = useMemo(
-    () => getPlanStudioProgress(planStudio),
-    [planStudio]
-  );
+  const progress = useMemo(() => {
+    return getPlanStudioProgress(planStudio);
+  }, [planStudio]);
 
   const livePrompt = useMemo(() => {
-    if (activeSectionState.promptText && activeSectionState.promptText.trim()) {
+    if (activeSectionState.promptText?.trim()) {
       return activeSectionState.promptText;
     }
 
@@ -217,10 +217,13 @@ export default function PlanStudioWorkspace({
           <button
             type="button"
             onClick={onContinueToValue}
-            className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
+            className="w-full 500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
           >
             Go to Value Estimate
-          </button>     progress={{
+          </button>
+        </>
+      }
+      progress={{
         percent: progress.percent,
         completed: progress.completed,
         total: progress.total,
@@ -238,7 +241,7 @@ export default function PlanStudioWorkspace({
             <div className="space-y-3">
               {planSectionConfigs.map((config) => {
                 const state = sections[config.id];
-                const complete =
+                const isComplete =
                   state?.draftContent && String(state.draftContent).trim();
 
                 return (
@@ -246,7 +249,7 @@ export default function PlanStudioWorkspace({
                     key={config.id}
                     config={config}
                     isActive={config.id === activeSectionId}
-                    isComplete={!!complete}
+                    isComplete={!!isComplete}
                     onClick={() => setActiveSection(config.id)}
                   />
                 );
