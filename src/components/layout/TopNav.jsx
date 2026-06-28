@@ -44,7 +44,7 @@ export default function TopNav({
             </div>
 
             <div className="min-w-0">
-              <h1 className="truncate text-sm font-semibold uppercase tracking-[0.22em] text-sky-700">
+              <h1 className="truncate text-sm font-semibold uppercase tracking-[0.2em] text-sky-700">
                 Project Builder
               </h1>
               <p className="truncate text-xs text-slate-600 sm:text-sm">
@@ -56,7 +56,15 @@ export default function TopNav({
             </div>
           </div>
 
-          <div className="hidden items-center gap-2 xl:flex">
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen((prev) => !prev)}
+            className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-100 lg:hidden"
+          >
+            {isMobileOpen ? "Close" : "Menu"}
+          </button>
+
+          <div className="hidden items-center gap-2 lg:flex">
             <button
               type="button"
               onClick={onSave}
@@ -70,7 +78,7 @@ export default function TopNav({
               onClick={onRenameSlot}
               className="rounded-full border border-sky-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-sky-50"
             >
-              Rename Slot
+              Rename
             </button>
 
             <button
@@ -78,7 +86,7 @@ export default function TopNav({
               onClick={onDuplicateSlot}
               className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
             >
-              Duplicate Slot
+              Duplicate
             </button>
 
             <button
@@ -86,24 +94,16 @@ export default function TopNav({
               onClick={onClearSlot}
               className="rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 transition hover:bg-orange-100"
             >
-              Clear Slot
+              Clear
             </button>
 
             <div className="rounded-full border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-medium text-orange-700">
               {saveStatus}
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setIsMobileOpen((prev) => !prev)}
-            className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-100 xl:hidden"
-          >
-            {isMobileOpen ? "Close" : "Menu"}
-          </button>
         </div>
 
-        <div className="mt-3 hidden xl:block">
+        <div className="mt-3 hidden lg:block">
           <div className="flex flex-wrap justify-end gap-2">
             {slotSummaries.map((slot) => {
               const isActive = slot.id === activeSlot;
@@ -142,7 +142,7 @@ export default function TopNav({
           </div>
         </div>
 
-        <nav className="mt-3 hidden overflow-x-auto pb-1 xl:block">
+        <nav className="mt-3 hidden overflow-x-auto pb-1 lg:block">
           <div className="flex min-w-max gap-2">
             {topNavTabs.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -167,7 +167,7 @@ export default function TopNav({
         </nav>
 
         {isMobileOpen ? (
-          <div className="mt-4 space-y-4 xl:hidden">
+          <div className="mt-4 space-y-4 lg:hidden">
             <div className="grid gap-2 sm:grid-cols-2">
               <button
                 type="button"
