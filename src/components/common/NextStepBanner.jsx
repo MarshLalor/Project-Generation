@@ -50,14 +50,14 @@ export default function NextStepBanner({ projectData, activeTab, onNavigate }) {
   const isOnNextStep = activeTab === nextStep.id;
 
   return (
-    <div className="rounded-[1.5rem] border border-orange-200 bg-gradient-to-br from-orange-50 via-white to-sky-50 shadow-sm">
+    <section className="w-full overflow-hidden rounded-[1.5rem] border border-orange-200 bg-gradient-to-br from-orange-50 via-white to-sky-50 shadow-sm">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left sm:px-5"
+        className="flex w-full min-w-0 items-center justify-between gap-3 px-4 py-3 text-left sm:px-5"
       >
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+          <span className="shrink-0 text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
             Suggestion
           </span>
 
@@ -65,13 +65,13 @@ export default function NextStepBanner({ projectData, activeTab, onNavigate }) {
             &gt;
           </span>
 
-          <span className="truncate text-sm font-semibold text-slate-900">
+          <span className="min-w-0 truncate text-sm font-semibold text-slate-900">
             {nextStep.label}
           </span>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <span className="hidden sm:inline">
+          <span className="hidden md:inline-flex">
             <StatusPill status={currentStep.status} />
           </span>
 
@@ -81,10 +81,10 @@ export default function NextStepBanner({ projectData, activeTab, onNavigate }) {
         </div>
       </button>
 
-      <div className={isOpen ? "block px-4 pb-4 sm:px-5" : "hidden lg:block"}>
+      <div className={`${isOpen ? "block" : "hidden lg:block"} px-4 pb-4 sm:px-5`}>
         <div className="border-t border-orange-100 pt-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
+          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusPill status={currentStep.status} />
 
@@ -99,13 +99,13 @@ export default function NextStepBanner({ projectData, activeTab, onNavigate }) {
                 )}
               </div>
 
-              <h2 className="mt-3 text-lg font-semibold text-slate-950">
+              <h2 className="mt-3 break-words text-lg font-semibold text-slate-950">
                 {isOnNextStep
                   ? `Focus here: ${nextStep.label}`
                   : `Next best step: ${nextStep.label}`}
               </h2>
 
-              <p className="mt-1 text-sm leading-6 text-slate-700">
+              <p className="mt-1 max-w-4xl text-sm leading-6 text-slate-700">
                 {nextStep.reason}
               </p>
 
@@ -119,7 +119,7 @@ export default function NextStepBanner({ projectData, activeTab, onNavigate }) {
               <button
                 type="button"
                 onClick={() => onNavigate(nextStep.id)}
-                className="rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600"
+                className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 lg:w-auto"
               >
                 Go to {nextStep.shortLabel}
               </button>
@@ -127,6 +127,6 @@ export default function NextStepBanner({ projectData, activeTab, onNavigate }) {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
