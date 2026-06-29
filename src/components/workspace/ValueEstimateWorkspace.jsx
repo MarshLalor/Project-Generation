@@ -85,7 +85,7 @@ export default function ValueEstimateWorkspace({
   };
 
   const handleParseResponse = () => {
-    const parsed = parseValueEstimateResponse(valueEstimate.aiResponse);
+    const parsed = parseValueEstimateResponse(valueEstimate.aiResponse || "");
 
     setProjectData((prev) => ({
       ...prev,
@@ -131,7 +131,8 @@ export default function ValueEstimateWorkspace({
             Go to Cost Estimate
           </button>
         </>
-     progress={{
+      }
+      progress={{
         percent: completion.percent,
         completed: completion.completed,
         total: completion.total,
@@ -162,7 +163,7 @@ export default function ValueEstimateWorkspace({
                 value={basics.projectObjective}
               />
               <OutputSummaryCard
-                title="Delivery Approach"
+                livery Approach"
                 value={basics.deliveryApproach}
               />
             </div>
@@ -213,86 +214,107 @@ export default function ValueEstimateWorkspace({
           >
             <div className="grid gap-5">
               <div>
-                <FieldLabel label="Likely Value Drivers" />
+                <FieldLabel
+                  label="Likely Value Drivers"
+                  helper="Summarize the primary sources of value."
+                />
                 <TextArea
                   value={valueEstimate.likelyValueDrivers}
                   onChange={(e) =>
                     updateValueField("likelyValueDrivers", e.target.value)
                   }
                   rows={5}
-                  placeholder="Summarize major benefit drivers, such as labor savings, rework reduction, cycle-time improvement, risk reduction, or capacity creation."
+                  placeholder="Example: labor savings, rework reduction, cycle-time improvement, risk reduction, capacity creation."
                 />
               </div>
 
               <div>
-                <FieldLabel label="Known Inputs" />
+                <FieldLabel
+                  label="Known Inputs"
+                  helper="List known value inputs, assumptions, volumes, rates, or baseline metrics."
+                />
                 <TextArea
                   value={valueEstimate.knownInputs}
                   onChange={(e) =>
                     updateValueField("knownInputs", e.target.value)
                   }
                   rows={5}
-                  placeholder="List known value inputs, assumptions, volumes, rates, or current baseline metrics."
+                  placeholder="Example: current review volume, labor rates, known time savings, current error rate."
                 />
               </div>
 
               <div>
-                <FieldLabel label="Missing Inputs" />
+                <FieldLabel
+                  label="Missing Inputs"
+                  helper="List variables needed to improve the estimate."
+                />
                 <TextArea
                   value={valueEstimate.missingInputs}
                   onChange={(e) =>
                     updateValueField("missingInputs", e.target.value)
                   }
                   rows={5}
-                  placeholder="List missing variables needed to improve confidence in the value estimate."
+                  placeholder="Example: current rework rate, adoption rate, QA cycle time baseline."
                 />
               </div>
 
               <div>
-                <FieldLabel label="Step-by-Step Follow-Up Questions" />
+                <FieldLabel
+                  label="Step-by-Step Follow-Up Questions"
+                  helper="Questions that should be answered before finalizing the value model."
+                />
                 <TextArea
                   value={valueEstimate.followUpQuestions}
                   onChange={(e) =>
                     updateValueField("followUpQuestions", e.target.value)
                   }
                   rows={6}
-                  placeholder="List questions that should be answered before finalizing the value model."
+                  placeholder="Example: What percentage of manual review effort can be reduced?"
                 />
               </div>
 
               <div>
-                <FieldLabel label="Suggested Estimation Methods" />
+                <FieldLabel
+                  label="Suggested Estimation Methods"
+                  helper="Describe possible formulas, benchmark approaches, or ranges."
+                />
                 <TextArea
                   value={valueEstimate.estimationMethods}
                   onChange={(e) =>
                     updateValueField("estimationMethods", e.target.value)
                   }
                   rows={5}
-                  placeholder="Describe possible estimation methods, formulas, benchmarks, or ranges."
+                  placeholder="Example: Annual labor savings = hours saved × weighted hourly rate."
                 />
               </div>
 
               <div>
-                <FieldLabel label="Preliminary High-Level Value Model" />
+                <FieldLabel
+                  label="Preliminary High-Level Value Model"
+                  helper="Draft the value model or business benefit logic."
+                />
                 <TextArea
                   value={valueEstimate.preliminaryValueModel}
                   onChange={(e) =>
                     updateValueField("preliminaryValueModel", e.target.value)
                   }
                   rows={7}
-                  placeholder="Draft the preliminary value model or business benefit logic."
+                  placeholder="Draft the preliminary value model here."
                 />
               </div>
 
               <div>
-                <FieldLabel label="Confidence / Assumption Notes" />
+                <FieldLabel
+                  label="Confidence / Assumption Notes"
+                  helper="Capture confidence level, caveats, assumptions, and validation needs."
+                />
                 <TextArea
                   value={valueEstimate.confidenceNotes}
                   onChange={(e) =>
                     updateValueField("confidenceNotes", e.target.value)
                   }
                   rows={5}
-                  placeholder="Capture confidence level, assumptions, caveats, and validation needs."
+                  placeholder="Example: Labor rates are benchmark-based; time savings require SME validation."
                 />
               </div>
             </div>
