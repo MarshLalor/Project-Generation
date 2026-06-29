@@ -69,7 +69,7 @@ function StatusPill({ ready }) {
 function TextArea({ value, onChange, placeholder, rows = 4 }) {
   return (
     <textarea
-      value={value}
+      value={value || ""}
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
@@ -115,11 +115,9 @@ export default function OutputsWorkspace({
   onBackToCost,
 }) {
   const [copyState, setCopyState] = useState("idle");
-  const [promptCopyStatus, setPromptCopyStatus] = useState("idle");
   const [downloadStatus, setDownloadStatus] = useState("No recent download.");
 
   const outputs = useMemo(() => buildOutputsPayload(projectData), [projectData]);
-
   const bundles = useMemo(() => buildExportBundles(projectData), [projectData]);
 
   const readiness = useMemo(
@@ -155,17 +153,6 @@ export default function OutputsWorkspace({
         promptText,
       },
     }));
-  };
-
-  const handleCopyExecutivePrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(executivePrompt || "");
-      setPromptCopyStatus("copied");
-      window.setTimeout(() => setPromptCopyStatus("idle"), 1800);
-    } catch (error) {
-      setPromptCopyStatus("failed");
-      window.setTimeout(() => setPromptCopyStatus("idle"), 2200);
-    }
   };
 
   const handleParseExecutiveSummary = () => {
@@ -305,7 +292,7 @@ export default function OutputsWorkspace({
               <div>
                 <FieldLabel label="Executive Summary" />
                 <TextArea
-                  value={executiveSummary.summaryText || ""}
+                  value={executiveSummary.summaryText}
                   onChange={(e) =>
                     updateExecutiveSummaryField("summaryText", e.target.value)
                   }
@@ -317,7 +304,7 @@ export default function OutputsWorkspace({
               <div>
                 <FieldLabel label="Decision Ask" />
                 <TextArea
-                  value={executiveSummary.decisionAsk || ""}
+                  value={executiveSummary.decisionAsk}
                   onChange={(e) =>
                     updateExecutiveSummaryField("decisionAsk", e.target.value)
                   }
@@ -329,7 +316,7 @@ export default function OutputsWorkspace({
               <div>
                 <FieldLabel label="Recommendation" />
                 <TextArea
-                  value={executiveSummary.recommendation || ""}
+                  value={executiveSummary.recommendation}
                   onChange={(e) =>
                     updateExecutiveSummaryField(
                       "recommendation",
@@ -337,38 +324,35 @@ export default function OutputsWorkspace({
                     )
                   }
                   rows={3}
-                  placeholder="Recommended direction based on current facts and assumptions."
                 />
               </div>
 
               <div>
                 <FieldLabel label="Key Benefits" />
                 <TextArea
-                  value={executiveSummary.keyBenefits || ""}
+                  value={executiveSummary.keyBenefits}
                   onChange={(e) =>
                     updateExecutiveSummaryField("keyBenefits", e.target.value)
                   }
                   rows={4}
-                  placeholder="Summarize major benefits, value drivers, and outcome improvements."
                 />
               </div>
 
               <div>
                 <FieldLabel label="Key Costs / Investment" />
                 <TextArea
-                  value={executiveSummary.keyCosts || ""}
+                  value={executiveSummary.keyCosts}
                   onChange={(e) =>
                     updateExecutiveSummaryField("keyCosts", e.target.value)
                   }
                   rows={4}
-                  placeholder="Summarize investment, Year 1 cost, recurring cost, and cost confidence."
                 />
               </div>
 
               <div>
                 <FieldLabel label="Scenario Takeaway" />
                 <TextArea
-                  value={executiveSummary.scenarioTakeaway || ""}
+                  value={executiveSummary.scenarioTakeaway}
                   onChange={(e) =>
                     updateExecutiveSummaryField(
                       "scenarioTakeaway",
@@ -376,14 +360,13 @@ export default function OutputsWorkspace({
                     )
                   }
                   rows={4}
-                  placeholder="Summarize low / expected / high scenario implications."
                 />
               </div>
 
               <div>
                 <FieldLabel label="Key Risks / Assumptions" />
                 <TextArea
-                  value={executiveSummary.risksAssumptions || ""}
+                  value={executiveSummary.risksAssumptions}
                   onChange={(e) =>
                     updateExecutiveSummaryField(
                       "risksAssumptions",
@@ -391,19 +374,17 @@ export default function OutputsWorkspace({
                     )
                   }
                   rows={4}
-                  placeholder="Summarize important assumptions, risks, and open validation needs."
                 />
               </div>
 
               <div>
                 <FieldLabel label="Recommended Next Steps" />
                 <TextArea
-                  value={executiveSummary.nextSteps || ""}
+                  value={executiveSummary.nextSteps}
                   onChange={(e) =>
                     updateExecutiveSummaryField("nextSteps", e.target.value)
                   }
                   rows={4}
-                  placeholder="List practical next steps for approval, validation, planning, or pilot."
                 />
               </div>
             </div>
@@ -426,54 +407,6 @@ export default function OutputsWorkspace({
 
               <button
                 type="button"
-                onClick={() => copyText(outputs.charterText, "Charter Copied")}
-                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-              >
-                Copy Charter
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  copyText(outputs.projectPlanSummary, "Plan Summary Copied")
-                }
-                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-              >
-                Copy Project Plan Summary
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  copyText(outputs.valueSummary, "Value Summary Copied")
-                }
-                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-              >
-                Copy Value Summary
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  copyText(outputs.costSummary, "Cost Summary Copied")
-                }
-                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-              >
-                Copy Cost Summary
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  copyText(outputs.scenarioSummary, "Scenario Summary Copied")
-                }
-                className="rounded-2xl border border-sky-200 bg-white px-5 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-sky-50"
-              >
-                Copy Scenario Summary
-              </button>
-
-              <button
-                type="button"
                 onClick={() =>
                   copyText(outputs.fullOutputPack, "Full Output Pack Copied")
                 }
@@ -492,114 +425,10 @@ export default function OutputsWorkspace({
           </SectionCard>
 
           <SectionCard
-            title="Download individual outputs"
-            subtitle="Download individual deliverables as TXT, Markdown, or Word documents."
-          >
-            <div className="grid gap-3">
-              <DownloadButton
-                label="Download Executive Summary (.txt)"
-                onClick={() =>
-                  downloadOutput(
-                    "Executive Summary",
-                    outputs.executiveSummary,
-                    "txt"
-                  )
-                }
-              />
-
-              <DownloadButton
-                label="Download Charter (.txt)"
-                onClick={() =>
-                  downloadOutput("Project Charter", outputs.charterText, "txt")
-                }
-              />
-
-              <DownloadButton
-                label="Download Full Output Pack (.md)"
-                primary
-                onClick={() =>
-                  downloadOutput("Full Output Pack", outputs.fullOutputPack, "md")
-                }
-              />
-
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-                <p className="text-sm font-semibold text-sky-700">
-                  Word exports
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                  Download individual sections as editable Word documents.
-                </p>
-              </div>
-
-              <DownloadButton
-                label="Download Executive Summary (.docx)"
-                onClick={() =>
-                  downloadOutputDocx(
-                    "Executive Summary",
-                    outputs.executiveSummary
-                  )
-                }
-              />
-
-              <DownloadButton
-                label="Download Charter (.docx)"
-                onClick={() =>
-                  downloadOutputDocx("Project Charter", outputs.charterText)
-                }
-              />
-
-              <DownloadButton
-                label="Download Project Plan Summary (.docx)"
-                onClick={() =>
-                  downloadOutputDocx(
-                    "Project Plan Summary",
-                    outputs.projectPlanSummary
-                  )
-                }
-              />
-
-              <DownloadButton
-                label="Download Business Case Summary (.docx)"
-                onClick={() =>
-                  downloadOutputDocx(
-                    "Business Case Summary",
-                    bundles.businessCasePack
-                  )
-                }
-              />
-
-              <DownloadButton
-                label="Download Full Output Pack (.docx)"
-                primary
-                onClick={() =>
-                  downloadOutputDocx("Full Output Pack", outputs.fullOutputPack)
-                }
-              />
-
-              <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-                <p className="text-sm font-semibold text-orange-700">
-                  Download status
-                </p>
-                <p className="mt-2 text-sm text-slate-700">{downloadStatus}</p>
-              </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard
             title="Download export bundles"
             subtitle="Download curated packs for common stakeholder conversations."
           >
             <div className="grid gap-3">
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-                <p className="text-sm font-semibold text-sky-700">
-                  Executive Pack
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                  Executive Summary, Scenario Summary, Value Summary, Cost
-                  Summary, and Open Questions.
-                </p>
-              </div>
-
               <DownloadButton
                 label="Download Executive Pack (.md)"
                 onClick={() =>
@@ -614,16 +443,6 @@ export default function OutputsWorkspace({
                 }
               />
 
-              <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
-                <p className="text-sm font-semibold text-sky-700">
-                  Planning Pack
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                  Charter, Project Plan Summary, Assumptions Register, and Open
-                  Questions.
-                </p>
-              </div>
-
               <DownloadButton
                 label="Download Planning Pack (.md)"
                 onClick={() =>
@@ -637,16 +456,6 @@ export default function OutputsWorkspace({
                   downloadOutputDocx("Planning Pack", bundles.planningPack)
                 }
               />
-
-              <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
-                <p className="text-sm font-semibold text-orange-700">
-                  Business Case Pack
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                  Executive Summary, Value Summary, Cost Summary, Scenario
-                  Summary, and Assumptions Register.
-                </p>
-              </div>
 
               <DownloadButton
                 label="Download Business Case Pack (.md)"
@@ -691,19 +500,25 @@ export default function OutputsWorkspace({
                   )
                 }
               />
+
+              <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
+                <p className="text-sm font-semibold text-orange-700">
+                  Download status
+                </p>
+                <p className="mt-2 text-sm text-slate-700">{downloadStatus}</p>
+              </div>
             </div>
           </SectionCard>
         </>
       }
       right={
         <>
-          promptSectionName="Executive Summary"
-            promptTitle="Executive summary AI prompt"
-            promptSubtitle="Generate a sponsor-ready executive summary using the compiled outputs."
+          <PromptPanel
+            promptTitle="Executive summary AI prompt builder"
+            promptSubtitle="Generate a sponsor-ready executive summary using the compiled outputs. The AI will ask follow-up questions before producing final output."
+            promptSectionName="Executive Summary"
             promptText={executivePrompt}
             onRefreshPrompt={buildAndSaveExecutivePrompt}
-            onCopyPrompt={handleCopyExecutivePrompt}
-            copyStatus={promptCopyStatus}
             responseTitle="Paste executive summary AI response"
             responseSubtitle="Paste the AI response here using the exact headings requested in the prompt."
             responseValue={executiveSummary.aiResponse || ""}
@@ -712,7 +527,14 @@ export default function OutputsWorkspace({
             }
             responsePlaceholder={`Paste the AI response here.
 
-Required structure:
+First response may contain:
+A. Context Review
+B. Missing or Unclear Information
+C. Follow-Up Questions
+D. Recommended Assumptions if the User Wants to Proceed
+E. Next Step Instruction
+
+Required final structure:
 A. Executive Summary
 B. Decision Ask
 C. Recommendation
@@ -734,11 +556,11 @@ H. Recommended Next Steps`}
               },
               {
                 title: "Step 2",
-                body: "Copy the prompt into your AI tool and ask it to create a sponsor-ready executive summary.",
+                body: "Copy the prompt into your AI tool. Answer follow-up questions first if needed.",
               },
               {
                 title: "Step 3",
-                body: "Paste the AI response back into this panel and parse it into structured fields.",
+                body: "Paste the final AI response back into this panel and parse it into structured fields.",
               },
               {
                 title: "Step 4",

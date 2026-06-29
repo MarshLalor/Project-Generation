@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import SectionCard from "../common/SectionCard";
 import BuilderLayout from "./BuilderLayout";
 import PromptPanel from "./PromptPanel";
@@ -28,7 +28,7 @@ function FieldLabel({ label, helper }) {
 function TextArea({ value, onChange, placeholder, rows = 4 }) {
   return (
     <textarea
-      value={value}
+      value={value || ""}
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
@@ -43,10 +43,8 @@ export default function IdeationWorkspace({
   onGoHome,
   onContinueToBasics,
 }) {
-  const [copyStatus, setCopyStatus] = useState("idle");
-
-  const ideation = projectData.ideation;
-  const basics = projectData.projectBasics;
+  const ideation = projectData.ideation || {};
+  const basics = projectData.projectBasics || {};
   const parsedSections = ideation.parsedSections || {};
 
   const completion = useMemo(
@@ -80,17 +78,6 @@ export default function IdeationWorkspace({
         promptText,
       },
     }));
-  };
-
-  const handleCopyPrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(promptPreview);
-      setCopyStatus("copied");
-      window.setTimeout(() => setCopyStatus("idle"), 1800);
-    } catch (error) {
-      setCopyStatus("failed");
-      window.setTimeout(() => setCopyStatus("idle"), 2200);
-    }
   };
 
   const handleParseResponse = () => {
@@ -293,35 +280,17 @@ export default function IdeationWorkspace({
                 value={parsedSections.recommendedDirection}
                 accent="orange"
               />
-              <OutputSummaryCard
-                title="Scope In"
-                value={parsedSections.scopeIn}
-              />
-              <OutputSummaryCard
-                title="Scope Out"
-                value={parsedSections.scopeOut}
-              />
-              <OutputSummaryCard
-                title="Stakeholders"
-                value={parsedSections.stakeholders}
-              />
-              <OutputSummaryCard
-                title="Assumptions"
-                value={parsedSections.assumptions}
-              />
-              <OutputSummaryCard
-                title="Risks / Constraints"
-                value={parsedSections.risksConstraints}
-              />
+              <OutputSummaryCard title="Scope In" value={parsedSections.scopeIn} />
+              <OutputSummaryCard title="Scope Out" value={parsedSections.scopeOut} />
+              <OutputSummaryCard title="Stakeholders" value={parsedSections.stakeholders} />
+              <OutputSummaryCard title="Assumptions" value={parsedSections.assumptions} />
+              <OutputSummaryCard title="Risks / Constraints" value={parsedSections.risksConstraints} />
               <OutputSummaryCard
                 title="Value Drivers"
                 value={parsedSections.valueDrivers}
                 accent="orange"
               />
-              <OutputSummaryCard
-                title="Open Questions"
-                value={parsedSections.openQuestions}
-              />
+              <OutputSummaryCard title="Open Questions" value={parsedSections.openQuestions} />
             </div>
           </SectionCard>
 
@@ -330,14 +299,8 @@ export default function IdeationWorkspace({
             subtitle="These Project Basics fields can be populated from Ideation."
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              <OutputSummaryCard
-                title="Business Problem"
-                value={basics.businessProblem}
-              />
-              <OutputSummaryCard
-                title="Project Objective"
-                value={basics.projectObjective}
-              />
+              <OutputSummaryCard title="Business Problem" value={basics.businessProblem} />
+              <OutputSummaryCard title="Project Objective" value={basics.projectObjective} />
               <OutputSummaryCard
                 title="Expected Outcome"
                 value={basics.expectedBusinessOutcome}
@@ -345,14 +308,8 @@ export default function IdeationWorkspace({
               />
               <OutputSummaryCard title="In Scope" value={basics.scopeIn} />
               <OutputSummaryCard title="Out of Scope" value={basics.scopeOut} />
-              <OutputSummaryCard
-                title="Stakeholders"
-                value={basics.keyStakeholders}
-              />
-              <OutputSummaryCard
-                title="Assumptions"
-                value={basics.keyAssumptions}
-              />
+              <OutputSummaryCard title="Stakeholders" value={basics.keyStakeholders} />
+              <OutputSummaryCard title="Assumptions" value={basics.keyAssumptions} />
               <OutputSummaryCard
                 title="Initial Value Hypothesis"
                 value={basics.initialValueHypothesis}
@@ -363,22 +320,28 @@ export default function IdeationWorkspace({
         </>
       }
       right={
-        promptSectionName="Ideation"
-          promptTitle="AI prompt preview"
-          promptSubtitle="Generate the ideation prompt, then copy it into your AI partner tool."
+        <PromptPanel
+          promptTitle="AI prompt builder"
+          promptSubtitle="Generate an ideation prompt that reviews available context and asks follow-up questions before producing the full output."
+          promptSectionName="Ideation"
           promptText={promptPreview}
           onRefreshPrompt={handleGeneratePrompt}
-          onCopyPrompt={handleCopyPrompt}
-          copyStatus={copyStatus}
           responseTitle="Paste AI response"
-          responseSubtitle="Paste the AI output here using the exact section headings requested in the prompt."
+          responseSubtitle="Paste the AI output here. The first response may contain follow-up questions. After answering, paste the final structured output and parse/apply it."
           responseValue={ideation.aiResponse}
           onResponseChange={(e) =>
             handleIdeationFieldChange("aiResponse", e.target.value)
           }
           responsePlaceholder={`Paste the AI response here.
 
-Recommended structure:
+First response may contain:
+A. Context Review
+B. Missing or Unclear Information
+C. Follow-Up Questions
+D. Recommended Assumptions if the User Wants to Proceed
+E. Next Step Instruction
+
+Required final structure:
 A. Problem Statement
 B. Project Objective
 C. Desired Outcomes
@@ -407,11 +370,11 @@ K. Open Questions`}
             },
             {
               title: "Step 3",
-              body: "Paste the response back and parse it into structured sections.",
+              body: "Answer follow-up questions first if the AI asks them.",
             },
             {
               title: "Step 4",
-              body: "Apply the parsed output to Project Basics.",
+              body: "Paste the final structured response back and apply it to Project Basics.",
             },
           ]}
         />

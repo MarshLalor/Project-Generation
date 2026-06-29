@@ -155,10 +155,7 @@ export default function PlanStudioWorkspace({
 
   const handleGeneratePrompt = () => {
     const promptText = buildPlanSectionPrompt(projectData, activeSectionId);
-
-    updateSectionState(activeSectionId, {
-      promptText,
-    });
+    updateSectionState(activeSectionId, { promptText });
   };
 
   const handleCopyPrompt = async () => {
@@ -201,7 +198,7 @@ export default function PlanStudioWorkspace({
           <button
             type="button"
             onClick={onGoHome}
-            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-mediumtion hover:bg-sky-50 sm:w-auto"
+            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
           >
             Back to Home
           </button>
@@ -286,18 +283,15 @@ export default function PlanStudioWorkspace({
                 title="Missing Information"
                 value={activeSectionState.missingInformation}
               />
-
               <OutputSummaryCard
                 title="Questions for the User"
                 value={activeSectionState.questionsForUser}
                 accent="orange"
               />
-
               <OutputSummaryCard
                 title="Suggested Next Steps"
                 value={activeSectionState.suggestedNextSteps}
               />
-
               <OutputSummaryCard
                 title="Key Assumptions"
                 value={activeSectionState.keyAssumptions}
@@ -315,7 +309,6 @@ export default function PlanStudioWorkspace({
                 title="Section Goal"
                 value={activeSectionConfig.purpose}
               />
-
               <OutputSummaryCard
                 title="Expected Output"
                 value={activeSectionConfig.outputHint}
@@ -332,8 +325,6 @@ export default function PlanStudioWorkspace({
           promptSectionName={activeSectionConfig.title}
           promptText={livePrompt}
           onRefreshPrompt={handleGeneratePrompt}
-          onCopyPrompt={handleCopyPrompt}
-          copyStatus={copyStatus}
           responseTitle="Paste AI response"
           responseSubtitle="Paste the AI output here. The first response may contain follow-up questions. After answering, paste the final structured output and parse/apply it."
           responseValue={activeSectionState.aiResponse}

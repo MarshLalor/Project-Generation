@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
 import PromptPanel from "./PromptPanel";
@@ -25,7 +25,7 @@ function FieldLabel({ label, helper }) {
 function TextArea({ value, onChange, placeholder, rows = 4 }) {
   return (
     <textarea
-      value={value}
+      value={value || ""}
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
@@ -50,10 +50,8 @@ export default function CharterWorkspace({
   onBackToBasics,
   onContinueToPlan,
 }) {
-  const [copyStatus, setCopyStatus] = useState("idle");
-
-  const basics = projectData.projectBasics;
-  const charter = projectData.charter;
+  const basics = projectData.projectBasics || {};
+  const charter = projectData.charter || {};
 
   const completion = useMemo(
     () => getCharterCompletion(projectData),
@@ -109,7 +107,7 @@ export default function CharterWorkspace({
       ...prev,
       charter: {
         ...prev.charter,
-        value,
+        [field]: value,
       },
     }));
   };
@@ -127,7 +125,10 @@ export default function CharterWorkspace({
   };
 
   const handleRefreshTextFromSections = () => {
-    const refreshedText = charterSectionsToText(mergedSections, basics.title || "");
+    const refreshedText = charterSectionsToText(
+      mergedSections,
+      basics.title || ""
+    );
 
     setProjectData((prev) => ({
       ...prev,
@@ -136,17 +137,6 @@ export default function CharterWorkspace({
         charterText: refreshedText,
       },
     }));
-  };
-
-  const handleCopyCharter = async () => {
-    try {
-      await navigator.clipboard.writeText(effectiveCharterText);
-      setCopyStatus("copied");
-      window.setTimeout(() => setCopyStatus("idle"), 1800);
-    } catch (error) {
-      setCopyStatus("failed");
-      window.setTimeout(() => setCopyStatus("idle"), 2200);
-    }
   };
 
   return (
@@ -329,10 +319,7 @@ export default function CharterWorkspace({
                 label="Recommended Next Steps"
                 value={mergedSections.recommendedNextSteps}
                 onChange={(e) =>
-                  handleCharterChange(
-                    "recommendedNextSteps",
-                    e.target.value
-                  )
+                  handleCharterChange("recommendedNextSteps", e.target.value)
                 }
                 rows={4}
               />
@@ -372,16 +359,26 @@ export default function CharterWorkspace({
               />
             </div>
           </SectionCard>
+
+          <SectionCard
+            title="Current charter text"
+            subtitle="This is the compiled charter text used by Outputs."
+          >
+            <div className="max-h-[520px] overflow-auto rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
+              <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
+                {effectiveCharterText}
+              </pre>
+            </div>
+          </SectionCard>
         </>
       }
       right={
-        promptSectionName="Project Charter"
-          promptTitle="Charter preview + AI refinement panel"
-          promptSubtitle="Use the current draft as your working charter and the prompt to refine it with an AI partner."
+        <PromptPanel
+          promptTitle="Charter AI prompt builder"
+          promptSubtitle="Generate a charter refinement prompt that uses prior context and asks follow-up questions before producing final output."
+          promptSectionName="Project Charter"
           promptText={effectiveAiPrompt}
           onRefreshPrompt={handleGenerateFromProject}
-          onCopyPrompt={handleCopyCharter}
-          copyStatus={copyStatus}
           responseTitle="Paste AI refinement response"
           responseSubtitle="Store the refined charter response or notes here."
           responseValue={charter.aiResponse}
@@ -390,7 +387,16 @@ export default function CharterWorkspace({
           }
           responsePlaceholder={`Paste any refined charter response or notes here.
 
-Suggested structure:
+First response may contain:
+A. Context Review
+B. Missing or Unclear Information
+C. Follow-Up Questions
+D. Recommended Assumptions if the User Wants to Proceed
+E. Next Step Instruction
+
+After answering the questions, paste the final structured charter response or notes here.
+
+Suggested final structure:
 A. Refined Charter
 B. Open Questions
 C. Areas that still need confirmation
@@ -412,11 +418,11 @@ D. Suggested next actions`}
             },
             {
               title: "Step 3",
-              body: "Use the AI refinement prompt if you want to improve clarity.",
+              body: "Use the AI refinement prompt if you want to improve clarity. The prompt will ask the AI for follow-up details before generating a final output.",
             },
             {
               title: "Step 4",
-              body: "Refresh and copy the charter text once ready.",
+              body: "Refresh and review the charter text once ready.",
             },
           ]}
         />

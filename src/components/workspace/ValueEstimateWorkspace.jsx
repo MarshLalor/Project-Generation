@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
 import PromptPanel from "./PromptPanel";
@@ -27,7 +27,7 @@ function FieldLabel({ label, helper }) {
 function TextArea({ value, onChange, placeholder, rows = 4 }) {
   return (
     <textarea
-      value={value}
+      value={value || ""}
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
@@ -43,10 +43,8 @@ export default function ValueEstimateWorkspace({
   onBackToPlan,
   onContinueToCost,
 }) {
-  const [copyStatus, setCopyStatus] = useState("idle");
-
-  const basics = projectData.projectBasics;
-  const valueEstimate = projectData.valueEstimate;
+  const basics = projectData.projectBasics || {};
+  const valueEstimate = projectData.valueEstimate || {};
 
   const assumptionsPreview = useMemo(
     () => getAssumptionsPreview(projectData),
@@ -69,7 +67,7 @@ export default function ValueEstimateWorkspace({
       ...prev,
       valueEstimate: {
         ...prev.valueEstimate,
-        value,
+        [field]: value,
       },
     }));
   };
@@ -84,17 +82,6 @@ export default function ValueEstimateWorkspace({
         promptText,
       },
     }));
-  };
-
-  const handleCopyPrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(livePrompt);
-      setCopyStatus("copied");
-      window.setTimeout(() => setCopyStatus("idle"), 1800);
-    } catch (error) {
-      setCopyStatus("failed");
-      window.setTimeout(() => setCopyStatus("idle"), 2200);
-    }
   };
 
   const handleParseResponse = () => {
@@ -180,7 +167,7 @@ export default function ValueEstimateWorkspace({
                 value={basics.deliveryApproach}
               />
             </div>
-          </SectionCard>
+         nCard>
 
           <SectionCard
             title="Assumptions feeding this value estimate"
@@ -307,22 +294,28 @@ export default function ValueEstimateWorkspace({
         </>
       }
       right={
-        promptSectionName="Value Estimate"
-          promptTitle="AI prompt preview"
-          promptSubtitle="Refresh the prompt whenever Project Basics, Charter, Plan Studio, Assumptions, or Scenario Calculator content changes."
+        <PromptPanel
+          promptTitle="AI prompt builder"
+          promptSubtitle="Generate a value estimate prompt that uses previous sections and asks follow-up questions before producing final output."
+          promptSectionName="Value Estimate"
           promptText={livePrompt}
           onRefreshPrompt={handleGeneratePrompt}
-          onCopyPrompt={handleCopyPrompt}
-          copyStatus={copyStatus}
           responseTitle="Paste AI response"
-          responseSubtitle="Paste the AI value estimate response here using the exact headings requested in the prompt."
+          responseSubtitle="Paste the AI value estimate response here. The first response may ask follow-up questions before final output."
           responseValue={valueEstimate.aiResponse}
           onResponseChange={(e) =>
             updateValueField("aiResponse", e.target.value)
           }
           responsePlaceholder={`Paste the AI response here.
 
-Required structure:
+First response may contain:
+A. Context Review
+B. Missing or Unclear Information
+C. Follow-Up Questions
+D. Recommended Assumptions if the User Wants to Proceed
+E. Next Step Instruction
+
+Required final structure:
 A. Likely Value Drivers
 B. Known Inputs
 C. Missing Inputs
@@ -343,7 +336,7 @@ G. Confidence / Assumption Notes`}
             },
             {
               title: "Step 2",
-              body: "Ask the AI to identify value drivers, known variables, missing data, and practical estimation methods.",
+              body: "Copy the prompt and answer any follow-up questions the AI asks first.",
             },
             {
               title: "Step 3",
@@ -351,7 +344,7 @@ G. Confidence / Assumption Notes`}
             },
             {
               title: "Step 4",
-              body: "Paste the AI response back into the tool and parse it into structured value estimate fields.",
+              body: "Paste the final AI response back into the tool and parse it into structured value estimate fields.",
             },
           ]}
         />

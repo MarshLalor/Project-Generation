@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import BuilderLayout from "./BuilderLayout";
 import SectionCard from "../common/SectionCard";
 import PromptPanel from "./PromptPanel";
@@ -27,7 +27,7 @@ function FieldLabel({ label, helper }) {
 function TextArea({ value, onChange, placeholder, rows = 4 }) {
   return (
     <textarea
-      value={value}
+      value={value || ""}
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
@@ -44,10 +44,8 @@ export default function CostEstimateWorkspace({
   onContinueToOutputs,
   onContinueToAssumptions,
 }) {
-  const [copyStatus, setCopyStatus] = useState("idle");
-
-  const basics = projectData.projectBasics;
-  const costEstimate = projectData.costEstimate;
+  const basics = projectData.projectBasics || {};
+  const costEstimate = projectData.costEstimate || {};
 
   const assumptionsPreview = useMemo(
     () => getAssumptionsPreview(projectData),
@@ -85,17 +83,6 @@ export default function CostEstimateWorkspace({
         promptText,
       },
     }));
-  };
-
-  const handleCopyPrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(livePrompt);
-      setCopyStatus("copied");
-      window.setTimeout(() => setCopyStatus("idle"), 1800);
-    } catch (error) {
-      setCopyStatus("failed");
-      window.setTimeout(() => setCopyStatus("idle"), 2200);
-    }
   };
 
   const handleParseResponse = () => {
@@ -323,21 +310,27 @@ export default function CostEstimateWorkspace({
       }
       right={
         <PromptPanel
-          promptTitle="AI prompt preview"
-          promptSubtitle="Refresh the prompt whenever Project Basics, Charter, Plan Studio, Value Estimate, Assumptions, or Scenario Calculator content changes."
+          promptTitle="AI prompt builder"
+          promptSubtitle="Generate a cost estimate prompt that uses previous sections and asks follow-up questions before producing final output."
+          promptSectionName="Cost Estimate"
           promptText={livePrompt}
           onRefreshPrompt={handleGeneratePrompt}
-          onCopyPrompt={handleCopyPrompt}
-          copyStatus={copyStatus}
           responseTitle="Paste AI response"
-          responseSubtitle="Paste the AI cost estimate response here using the exact headings requested in the prompt."
+          responseSubtitle="Paste the AI cost estimate response here. The first response may ask follow-up questions before final output."
           responseValue={costEstimate.aiResponse}
           onResponseChange={(e) =>
             updateCostField("aiResponse", e.target.value)
           }
           responsePlaceholder={`Paste the AI response here.
 
-Required structure:
+First response may contain:
+A. Context Review
+B. Missing or Unclear Information
+C. Follow-Up Questions
+D. Recommended Assumptions if the User Wants to Proceed
+E. Next Step Instruction
+
+Required final structure:
 A. Cost Categories
 B. Known Inputs
 C. Missing Inputs
@@ -358,7 +351,7 @@ G. Assumptions and Confidence Notes`}
             },
             {
               title: "Step 2",
-              body: "Ask the AI to identify cost categories, known cost inputs, missing data, and estimation logic.",
+              body: "Copy the prompt and answer any follow-up questions the AI asks first.",
             },
             {
               title: "Step 3",
@@ -366,7 +359,7 @@ G. Assumptions and Confidence Notes`}
             },
             {
               title: "Step 4",
-              body: "Paste the result back into the tool and parse it into structured cost estimate fields.",
+              body: "Paste the final AI response back into the tool and parse it into structured cost estimate fields.",
             },
           ]}
         />
