@@ -131,8 +131,7 @@ export default function ValueEstimateWorkspace({
             Go to Cost Estimate
           </button>
         </>
-      }
-      progress={{
+     progress={{
         percent: completion.percent,
         completed: completion.completed,
         total: completion.total,
@@ -167,7 +166,7 @@ export default function ValueEstimateWorkspace({
                 value={basics.deliveryApproach}
               />
             </div>
-         nCard>
+          </SectionCard>
 
           <SectionCard
             title="Assumptions feeding this value estimate"
@@ -221,6 +220,7 @@ export default function ValueEstimateWorkspace({
                     updateValueField("likelyValueDrivers", e.target.value)
                   }
                   rows={5}
+                  placeholder="Summarize major benefit drivers, such as labor savings, rework reduction, cycle-time improvement, risk reduction, or capacity creation."
                 />
               </div>
 
@@ -232,6 +232,7 @@ export default function ValueEstimateWorkspace({
                     updateValueField("knownInputs", e.target.value)
                   }
                   rows={5}
+                  placeholder="List known value inputs, assumptions, volumes, rates, or current baseline metrics."
                 />
               </div>
 
@@ -243,6 +244,7 @@ export default function ValueEstimateWorkspace({
                     updateValueField("missingInputs", e.target.value)
                   }
                   rows={5}
+                  placeholder="List missing variables needed to improve confidence in the value estimate."
                 />
               </div>
 
@@ -254,6 +256,7 @@ export default function ValueEstimateWorkspace({
                     updateValueField("followUpQuestions", e.target.value)
                   }
                   rows={6}
+                  placeholder="List questions that should be answered before finalizing the value model."
                 />
               </div>
 
@@ -265,6 +268,7 @@ export default function ValueEstimateWorkspace({
                     updateValueField("estimationMethods", e.target.value)
                   }
                   rows={5}
+                  placeholder="Describe possible estimation methods, formulas, benchmarks, or ranges."
                 />
               </div>
 
@@ -276,6 +280,7 @@ export default function ValueEstimateWorkspace({
                     updateValueField("preliminaryValueModel", e.target.value)
                   }
                   rows={7}
+                  placeholder="Draft the preliminary value model or business benefit logic."
                 />
               </div>
 
@@ -287,6 +292,7 @@ export default function ValueEstimateWorkspace({
                     updateValueField("confidenceNotes", e.target.value)
                   }
                   rows={5}
+                  placeholder="Capture confidence level, assumptions, caveats, and validation needs."
                 />
               </div>
             </div>
@@ -302,7 +308,7 @@ export default function ValueEstimateWorkspace({
           onRefreshPrompt={handleGeneratePrompt}
           responseTitle="Paste AI response"
           responseSubtitle="Paste the AI value estimate response here. The first response may ask follow-up questions before final output."
-          responseValue={valueEstimate.aiResponse}
+          responseValue={valueEstimate.aiResponse || ""}
           onResponseChange={(e) =>
             updateValueField("aiResponse", e.target.value)
           }
