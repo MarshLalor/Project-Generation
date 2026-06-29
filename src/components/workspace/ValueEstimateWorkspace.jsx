@@ -163,7 +163,7 @@ export default function ValueEstimateWorkspace({
                 value={basics.projectObjective}
               />
               <OutputSummaryCard
-                livery Approach"
+                title="Delivery Approach"
                 value={basics.deliveryApproach}
               />
             </div>
