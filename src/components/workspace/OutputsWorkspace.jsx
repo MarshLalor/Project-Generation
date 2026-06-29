@@ -697,7 +697,7 @@ export default function OutputsWorkspace({
       }
       right={
         <>
-          <PromptPanel
+          promptSectionName="Executive Summary"
             promptTitle="Executive summary AI prompt"
             promptSubtitle="Generate a sponsor-ready executive summary using the compiled outputs."
             promptText={executivePrompt}

@@ -375,7 +375,7 @@ export default function CharterWorkspace({
         </>
       }
       right={
-        <PromptPanel
+        promptSectionName="Project Charter"
           promptTitle="Charter preview + AI refinement panel"
           promptSubtitle="Use the current draft as your working charter and the prompt to refine it with an AI partner."
           promptText={effectiveAiPrompt}

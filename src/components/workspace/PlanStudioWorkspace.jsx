@@ -201,7 +201,7 @@ export default function PlanStudioWorkspace({
           <button
             type="button"
             onClick={onGoHome}
-            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-sky-50 sm:w-auto"
+            className="w-full rounded-2xl border border-sky-200 bg-white px-5 py-3 text-sm font-mediumtion hover:bg-sky-50 sm:w-auto"
           >
             Back to Home
           </button>
@@ -217,7 +217,7 @@ export default function PlanStudioWorkspace({
           <button
             type="button"
             onClick={onContinueToValue}
-            className="w-full 500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
+            className="w-full rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 sm:w-auto"
           >
             Go to Value Estimate
           </button>
@@ -286,15 +286,18 @@ export default function PlanStudioWorkspace({
                 title="Missing Information"
                 value={activeSectionState.missingInformation}
               />
+
               <OutputSummaryCard
                 title="Questions for the User"
                 value={activeSectionState.questionsForUser}
                 accent="orange"
               />
+
               <OutputSummaryCard
                 title="Suggested Next Steps"
                 value={activeSectionState.suggestedNextSteps}
               />
+
               <OutputSummaryCard
                 title="Key Assumptions"
                 value={activeSectionState.keyAssumptions}
@@ -312,6 +315,7 @@ export default function PlanStudioWorkspace({
                 title="Section Goal"
                 value={activeSectionConfig.purpose}
               />
+
               <OutputSummaryCard
                 title="Expected Output"
                 value={activeSectionConfig.outputHint}
@@ -323,21 +327,31 @@ export default function PlanStudioWorkspace({
       }
       right={
         <PromptPanel
-          promptTitle="AI prompt preview"
-          promptSubtitle="Generate the section prompt, then copy it into your AI tool."
+          promptTitle="AI prompt builder"
+          promptSubtitle="Generate a section-aware prompt that pulls from prior sections and asks follow-up questions before producing final output."
+          promptSectionName={activeSectionConfig.title}
           promptText={livePrompt}
           onRefreshPrompt={handleGeneratePrompt}
           onCopyPrompt={handleCopyPrompt}
           copyStatus={copyStatus}
           responseTitle="Paste AI response"
-          responseSubtitle="Paste the AI output here using the exact headings from the prompt."
+          responseSubtitle="Paste the AI output here. The first response may contain follow-up questions. After answering, paste the final structured output and parse/apply it."
           responseValue={activeSectionState.aiResponse}
           onResponseChange={(e) =>
             updateActiveSection("aiResponse", e.target.value)
           }
           responsePlaceholder={`Paste the AI response here.
 
-Required structure:
+First response may contain:
+A. Context Review
+B. Missing or Unclear Information
+C. Follow-Up Questions
+D. Recommended Assumptions if the User Wants to Proceed
+E. Next Step Instruction
+
+After answering the questions, paste the final structured output here.
+
+Required final structure:
 A. Draft Section Content
 B. Missing Information
 C. Questions for the User
@@ -352,19 +366,19 @@ E. Key Assumptions`}
           helperSteps={[
             {
               title: "Step 1",
-              body: "Select a planning section and refresh the prompt.",
+              body: "Select a planning section such as Scope, Schedule, Risk, or Communications.",
             },
             {
               title: "Step 2",
-              body: "Copy the prompt into your AI tool.",
+              body: "Click the section-specific Generate Prompt button. The prompt uses prior project context and asks the AI to request follow-up details before generating the final section.",
             },
             {
               title: "Step 3",
-              body: "Paste the response back and parse it.",
+              body: "Copy the prompt into your AI tool. Answer any follow-up questions or tell the AI to proceed with assumptions.",
             },
             {
               title: "Step 4",
-              body: "Apply the parsed result to the section draft.",
+              body: "Paste the final structured response back into this panel, then parse and apply it to the selected planning section.",
             },
           ]}
         />

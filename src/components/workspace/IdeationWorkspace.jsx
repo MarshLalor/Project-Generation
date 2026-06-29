@@ -363,7 +363,7 @@ export default function IdeationWorkspace({
         </>
       }
       right={
-        <PromptPanel
+        promptSectionName="Ideation"
           promptTitle="AI prompt preview"
           promptSubtitle="Generate the ideation prompt, then copy it into your AI partner tool."
           promptText={promptPreview}

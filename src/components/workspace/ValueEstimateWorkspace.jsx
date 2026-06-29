@@ -307,7 +307,7 @@ export default function ValueEstimateWorkspace({
         </>
       }
       right={
-        <PromptPanel
+        promptSectionName="Value Estimate"
           promptTitle="AI prompt preview"
           promptSubtitle="Refresh the prompt whenever Project Basics, Charter, Plan Studio, Assumptions, or Scenario Calculator content changes."
           promptText={livePrompt}
